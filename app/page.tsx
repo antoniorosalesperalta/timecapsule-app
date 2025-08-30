@@ -49,35 +49,35 @@ export default function LegacyVideoApp() {
       description:
         "Crea una cápsula del tiempo digital que perdurará para siempre. Cada año, dedica un minuto a compartir tus pensamientos, experiencias y amor.",
       icon: "💝",
-      color: "from-pink-500 to-rose-500"
+      color: "linear-gradient(135deg, #ec4899 0%, #e11d48 100%)"
     },
     {
       title: "Tu Crecimiento a Través del Tiempo",
       description:
         "Imagina a tus hijos viendo tu evolución desde los 8 hasta los 53 años. Un minuto por año que cuenta la historia de tu vida y sabiduría.",
       icon: "⏰",
-      color: "from-blue-500 to-indigo-500"
+      color: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
     },
     {
       title: "Memorias que Inspiran",
       description:
         "Comparte momentos de alegría, lecciones aprendidas y palabras de amor. Deja un legado positivo que inspire a las futuras generaciones.",
       icon: "🌟",
-      color: "from-yellow-500 to-orange-500"
+      color: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)"
     },
     {
       title: "Un Tesoro Familiar",
       description:
         "Tus videos se compilarán en un hermoso recuerdo que tus familiares atesorarán para siempre. Una ventana a tu corazón y tu historia.",
       icon: "💎",
-      color: "from-purple-500 to-pink-500"
+      color: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)"
     },
     {
       title: "Tu Legado Digital",
       description:
         "Cuando llegue el momento, tus seres queridos recibirán este regalo especial. Un recordatorio eterno de tu amor y las lecciones que compartiste.",
       icon: "🕊️",
-      color: "from-green-500 to-teal-500"
+      color: "linear-gradient(135deg, #10b981 0%, #059669 100%)"
     },
   ]
 
@@ -133,243 +133,659 @@ export default function LegacyVideoApp() {
 
   if (showIntro) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-lg shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-8">
-            <div className="text-center mb-8">
-              <div className="mx-auto mb-6 w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                <Heart className="w-12 h-12 text-white" />
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '28rem',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '1rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          border: 'none',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ padding: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{
+                margin: '0 auto 1.5rem',
+                width: '6rem',
+                height: '6rem',
+                background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
+              }}>
+                <Heart style={{ width: '3rem', height: '3rem', color: 'white' }} />
               </div>
-              <h1 className="text-4xl font-bold text-rose-900 mb-3">TimeCapsule</h1>
-              <p className="text-rose-700 text-lg">Tu legado digital para las futuras generaciones</p>
+              <h1 style={{
+                fontSize: '2.5rem',
+                fontWeight: 'bold',
+                color: '#be185d',
+                marginBottom: '0.75rem',
+                margin: '0 0 0.75rem 0'
+              }}>TimeCapsule</h1>
+              <p style={{
+                color: '#be185d',
+                fontSize: '1.125rem',
+                margin: 0
+              }}>Tu legado digital para las futuras generaciones</p>
             </div>
 
-            <div className="relative">
-              <div className="mb-8">
-                <div className={`w-full h-48 bg-gradient-to-br ${introSlides[currentSlide].color} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>
-                  <div className="text-6xl">{introSlides[currentSlide].icon}</div>
+            <div style={{ position: 'relative' }}>
+              <div style={{ marginBottom: '2rem' }}>
+                <div style={{
+                  width: '100%',
+                  height: '12rem',
+                  background: introSlides[currentSlide].color,
+                  borderRadius: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <div style={{ fontSize: '4rem' }}>{introSlides[currentSlide].icon}</div>
                 </div>
 
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 text-balance">
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                  <h2 style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#1f2937',
+                    marginBottom: '1rem',
+                    margin: '0 0 1rem 0'
+                  }}>
                     {introSlides[currentSlide].title}
                   </h2>
-                  <p className="text-gray-600 text-base leading-relaxed text-pretty">
+                  <p style={{
+                    color: '#6b7280',
+                    fontSize: '1rem',
+                    lineHeight: '1.6',
+                    margin: 0
+                  }}>
                     {introSlides[currentSlide].description}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between mb-8">
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '2rem'
+                }}>
+                  <button
                     onClick={prevSlide}
-                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full w-10 h-10 p-0"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#be185d',
+                      cursor: 'pointer',
+                      borderRadius: '50%',
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = '#fdf2f8'
+                      e.currentTarget.style.color = '#be185d'
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#be185d'
+                    }}
                   >
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
+                    <ChevronLeft style={{ width: '1.25rem', height: '1.25rem' }} />
+                  </button>
 
-                  <div className="flex space-x-3">
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
                     {introSlides.map((_, index) => (
                       <div
                         key={index}
-                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                          index === currentSlide 
-                            ? "bg-rose-500 scale-125" 
-                            : "bg-rose-200 hover:bg-rose-300"
-                        }`}
+                        style={{
+                          width: '0.75rem',
+                          height: '0.75rem',
+                          borderRadius: '50%',
+                          transition: 'all 0.3s',
+                          background: index === currentSlide ? '#ec4899' : '#e5e7eb',
+                          transform: index === currentSlide ? 'scale(1.25)' : 'scale(1)'
+                        }}
                       />
                     ))}
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
                     onClick={nextSlide}
-                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full w-10 h-10 p-0"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#be185d',
+                      cursor: 'pointer',
+                      borderRadius: '50%',
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = '#fdf2f8'
+                      e.currentTarget.style.color = '#be185d'
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#be185d'
+                    }}
                   >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
+                    <ChevronRight style={{ width: '1.25rem', height: '1.25rem' }} />
+                  </button>
                 </div>
 
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {currentSlide === introSlides.length - 1 ? (
-                    <Button 
+                    <button
                       onClick={() => setShowIntro(false)}
-                      className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-lg font-semibold py-4 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105"
-                      size="lg"
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                        color: 'white',
+                        fontSize: '1.125rem',
+                        fontWeight: '600',
+                        padding: '1rem',
+                        borderRadius: '0.75rem',
+                        border: 'none',
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)',
+                        transition: 'all 0.2s',
+                        transform: 'scale(1)'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)'
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)'
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
+                      }}
                     >
                       Comenzar Mi TimeCapsule
-                    </Button>
+                    </button>
                   ) : (
-                    <Button
-                      variant="outline"
+                    <button
                       onClick={() => setShowIntro(false)}
-                      className="w-full border-2 border-rose-200 text-rose-700 hover:bg-rose-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: '2px solid #fbcfe8',
+                        color: '#be185d',
+                        fontSize: '1.125rem',
+                        fontWeight: '500',
+                        padding: '1rem',
+                        borderRadius: '0.75rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.background = '#fdf2f8'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                      }}
                     >
                       Saltar Introducción
-                    </Button>
+                    </button>
                   )}
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (currentStep === "welcome") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <div className="mx-auto mb-6 w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-              <Heart className="w-10 h-10 text-white" />
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem'
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '28rem',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '1rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          border: 'none',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <div style={{
+              margin: '0 auto 1.5rem',
+              width: '5rem',
+              height: '5rem',
+              background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
+            }}>
+              <Heart style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} />
             </div>
-            <CardTitle className="text-3xl font-bold text-rose-900 mb-3">Bienvenido a TimeCapsule</CardTitle>
-            <CardDescription className="text-rose-700 text-base leading-relaxed">
+            <h1 style={{
+              fontSize: '1.875rem',
+              fontWeight: 'bold',
+              color: '#be185d',
+              marginBottom: '0.75rem',
+              margin: '0 0 0.75rem 0'
+            }}>Bienvenido a TimeCapsule</h1>
+            <p style={{
+              color: '#be185d',
+              fontSize: '1rem',
+              lineHeight: '1.6',
+              margin: '0 0 1.5rem 0'
+            }}>
               Crea un legado hermoso que inspire a tus seres queridos por generaciones
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="reminder-date" className="text-rose-800 font-medium">¿Cuándo quieres grabar tu primer video?</Label>
-              <Input
-                id="reminder-date"
-                type="date"
-                value={reminderDate}
-                onChange={(e) => setReminderDate(e.target.value)}
-                className="w-full border-2 border-rose-200 focus:border-rose-500 rounded-lg py-3"
-              />
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label style={{
+                  color: '#be185d',
+                  fontWeight: '500',
+                  fontSize: '0.875rem'
+                }}>
+                  ¿Cuándo quieres grabar tu primer video?
+                </label>
+                <input
+                  type="date"
+                  value={reminderDate}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    border: '2px solid #fbcfe8',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#ec4899'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#fbcfe8'
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => setCurrentStep("dashboard")}
+                disabled={!reminderDate}
+                style={{
+                  width: '100%',
+                  background: reminderDate ? 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)' : '#e5e7eb',
+                  color: 'white',
+                  fontWeight: '600',
+                  padding: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: reminderDate ? 'pointer' : 'not-allowed',
+                  boxShadow: reminderDate ? '0 10px 25px -5px rgba(236, 72, 153, 0.4)' : 'none',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  if (reminderDate) {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (reminderDate) {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
+                  }
+                }}
+              >
+                <Calendar style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
+                Configurar Recordatorio
+              </button>
             </div>
-            <Button 
-              onClick={() => setCurrentStep("dashboard")} 
-              className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold py-3 rounded-lg shadow-lg" 
-              disabled={!reminderDate}
-            >
-              <Calendar className="w-5 h-5 mr-2" />
-              Configurar Recordatorio
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (currentStep === "dashboard") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-        <div className="container mx-auto p-6 max-w-4xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-rose-900 mb-4">Tu TimeCapsule Digital</h1>
-            <p className="text-rose-700 text-lg leading-relaxed max-w-2xl mx-auto">
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
+        padding: '1.5rem'
+      }}>
+        <div style={{
+          maxWidth: '64rem',
+          margin: '0 auto'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              color: '#be185d',
+              marginBottom: '1rem',
+              margin: '0 0 1rem 0'
+            }}>Tu TimeCapsule Digital</h1>
+            <p style={{
+              color: '#be185d',
+              fontSize: '1.125rem',
+              lineHeight: '1.6',
+              maxWidth: '32rem',
+              margin: '0 auto'
+            }}>
               Es hora de grabar tu video anual. Comparte momentos de alegría, lecciones aprendidas y palabras de amor
               que inspiren a tus seres queridos.
             </p>
           </div>
 
-          <div className="grid gap-6 mb-8">
-            <Card className={`${canRecordThisYear() ? "border-2 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50" : "border-2 border-gray-200 bg-gray-50"} shadow-lg`}>
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-2xl font-bold text-rose-900">Video Anual {getCurrentYear()}</h3>
-                    <p className="text-rose-700 mt-2">
-                      {canRecordThisYear() ? "Comparte tu crecimiento y sabiduría" : "Ya grabaste tu video de este año"}
-                    </p>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '1rem',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+            border: '2px solid #fbcfe8',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <h3 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                  color: '#be185d',
+                  margin: '0 0 0.5rem 0'
+                }}>Video Anual {getCurrentYear()}</h3>
+                <p style={{
+                  color: '#be185d',
+                  margin: '0.5rem 0 0 0'
+                }}>
+                  {canRecordThisYear() ? "Comparte tu crecimiento y sabiduría" : "Ya grabaste tu video de este año"}
+                </p>
+              </div>
+              <div style={{
+                background: '#fdf2f8',
+                color: '#be185d',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <Clock style={{ width: '1rem', height: '1rem' }} />
+                {canRecordThisYear() ? "Pendiente" : "Completado"}
+              </div>
+            </div>
+
+            {canRecordThisYear() ? (
+              !isRecording ? (
+                <button
+                  onClick={handleStartRecording}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                    color: 'white',
+                    fontSize: '1.125rem',
+                    fontWeight: '600',
+                    padding: '1rem',
+                    borderRadius: '0.75rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)',
+                    transition: 'all 0.2s',
+                    transform: 'scale(1)'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)'
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)'
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
+                  }}
+                >
+                  <Video style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem', display: 'inline' }} />
+                  Comenzar Grabación (1 min)
+                </button>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+                  <div style={{
+                    width: '5rem',
+                    height: '5rem',
+                    background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.5rem',
+                    animation: 'pulse 2s infinite',
+                    boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
+                  }}>
+                    <Video style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} />
                   </div>
-                  <Badge variant={canRecordThisYear() ? "secondary" : "outline"} className="text-sm font-medium px-4 py-2 bg-rose-100 text-rose-800">
-                    <Clock className="w-4 h-4 mr-2" />
-                    {canRecordThisYear() ? "Pendiente" : "Completado"}
-                  </Badge>
+                  <p style={{
+                    fontSize: '1.25rem',
+                    fontWeight: '600',
+                    color: '#be185d',
+                    margin: '0 0 0.5rem 0'
+                  }}>Grabando...</p>
+                  <p style={{
+                    color: '#be185d',
+                    margin: 0
+                  }}>Comparte momentos hermosos y lecciones de vida</p>
                 </div>
-
-                {canRecordThisYear() ? (
-                  !isRecording ? (
-                    <Button 
-                      onClick={handleStartRecording} 
-                      className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-lg font-semibold py-4 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105" 
-                      size="lg"
-                    >
-                      <Video className="w-6 h-6 mr-3" />
-                      Comenzar Grabación (1 min)
-                    </Button>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse shadow-lg">
-                        <Video className="w-10 h-10 text-white" />
-                      </div>
-                      <p className="text-xl font-semibold text-rose-900 mb-2">Grabando...</p>
-                      <p className="text-rose-700">Comparte momentos hermosos y lecciones de vida</p>
-                    </div>
-                  )
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      <CheckCircle className="w-10 h-10 text-white" />
-                    </div>
-                    <p className="text-xl font-semibold text-rose-900 mb-2">Video de {getCurrentYear()} Completado</p>
-                    <p className="text-rose-700 mb-6">
-                      Solo puedes grabar un video por año para mantener la esencia de TimeCapsule
-                    </p>
-                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                      <div className="flex items-start space-x-4">
-                        <AlertCircle className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
-                        <div className="text-left">
-                          <p className="text-lg font-semibold text-blue-900 mb-2">¿Por qué solo un video por año?</p>
-                          <p className="text-blue-800 leading-relaxed">
-                            Cada video representa un momento único en tu vida. Esta limitación hace que cada grabación
-                            sea más significativa y mantiene el propósito original de crear una cápsula del tiempo
-                            auténtica.
-                          </p>
-                        </div>
-                      </div>
+              )
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                <div style={{
+                  width: '5rem',
+                  height: '5rem',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)'
+                }}>
+                  <CheckCircle style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} />
+                </div>
+                <p style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  color: '#be185d',
+                  margin: '0 0 0.5rem 0'
+                }}>Video de {getCurrentYear()} Completado</p>
+                <p style={{
+                  color: '#be185d',
+                  margin: '0 0 1.5rem 0'
+                }}>
+                  Solo puedes grabar un video por año para mantener la esencia de TimeCapsule
+                </p>
+                <div style={{
+                  background: '#e0f2fe',
+                  border: '2px solid #90cdf4',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  marginTop: '1.5rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem'
+                  }}>
+                    <AlertCircle style={{ width: '1.5rem', height: '1.5rem', color: '#3b82f6', marginTop: '0.25rem', flexShrink: 0 }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <p style={{
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        color: '#3b82f6',
+                        marginBottom: '0.5rem'
+                      }}>¿Por qué solo un video por año?</p>
+                      <p style={{
+                        color: '#6b7280',
+                        lineHeight: '1.6'
+                      }}>
+                        Cada video representa un momento único en tu vida. Esta limitación hace que cada grabación
+                        sea más significativa y mantiene el propósito original de crear una cápsula del tiempo
+                        auténtica.
+                      </p>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            )}
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <Users className="w-8 h-8 text-white" />
-                  </div>
-                  <h4 className="text-xl font-semibold text-rose-900 mb-2">Contactos</h4>
-                  <p className="text-rose-700">{familyContacts.length} familiares</p>
-                </CardContent>
-              </Card>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+              border: 'none'
+            }}>
+              <div style={{
+                width: '4rem',
+                height: '4rem',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1rem',
+                boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.4)'
+              }}>
+                <Users style={{ width: '2rem', height: '2rem', color: 'white' }} />
+              </div>
+              <h4 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#be185d',
+                margin: '0 0 0.5rem 0'
+              }}>Contactos</h4>
+              <p style={{
+                color: '#be185d',
+                margin: 0
+              }}>{familyContacts.length} familiares</p>
+            </div>
 
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <Shield className="w-8 h-8 text-white" />
-                  </div>
-                  <h4 className="text-xl font-semibold text-rose-900 mb-2">Sistema de Legado</h4>
-                  <p className="text-rose-700">Configurado</p>
-                </CardContent>
-              </Card>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+              border: 'none'
+            }}>
+              <div style={{
+                width: '4rem',
+                height: '4rem',
+                background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1rem',
+                boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
+              }}>
+                <Shield style={{ width: '2rem', height: '2rem', color: 'white' }} />
+              </div>
+              <h4 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#be185d',
+                margin: '0 0 0.5rem 0'
+              }}>Sistema de Legado</h4>
+              <p style={{
+                color: '#be185d',
+                margin: 0
+              }}>Configurado</p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setCurrentStep("library")} 
-              className="w-full border-2 border-rose-200 text-rose-700 hover:bg-rose-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <button
+              onClick={() => setCurrentStep("library")}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: '2px solid #fbcfe8',
+                color: '#be185d',
+                fontSize: '1.125rem',
+                fontWeight: '500',
+                padding: '1rem',
+                borderRadius: '0.75rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#fdf2f8'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'transparent'
+              }}
             >
               Ver Videos Anteriores
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setCurrentStep("legacy")} 
-              className="w-full border-2 border-rose-200 text-rose-700 hover:bg-rose-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+            </button>
+            <button
+              onClick={() => setCurrentStep("legacy")}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: '2px solid #fbcfe8',
+                color: '#be185d',
+                fontSize: '1.125rem',
+                fontWeight: '500',
+                padding: '1rem',
+                borderRadius: '0.75rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#fdf2f8'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'transparent'
+              }}
             >
-              <Shield className="w-5 h-5 mr-2" />
+              <Shield style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
               Configurar Sistema de Legado
-            </Button>
+            </button>
           </div>
         </div>
       </div>
@@ -378,58 +794,159 @@ export default function LegacyVideoApp() {
 
   if (currentStep === "legacy") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-        <div className="container mx-auto p-6 max-w-4xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-rose-900 mb-4">Sistema de Legado Digital</h1>
-            <p className="text-rose-700 text-lg leading-relaxed">
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
+        padding: '1.5rem'
+      }}>
+        <div style={{
+          maxWidth: '64rem',
+          margin: '0 auto'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              color: '#be185d',
+              marginBottom: '1rem',
+              margin: '0 0 1rem 0'
+            }}>Sistema de Legado Digital</h1>
+            <p style={{
+              color: '#be185d',
+              fontSize: '1.125rem',
+              lineHeight: '1.6',
+              margin: '0 0 1.5rem 0'
+            }}>
               Configura cómo y cuándo se enviará tu TimeCapsule a tus seres queridos
             </p>
           </div>
 
-          <div className="space-y-6">
-            <Card className="border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center text-amber-800 text-2xl">
-                  <Shield className="w-6 h-6 mr-3" />
-                  Contacto de Confianza
-                </CardTitle>
-                <CardDescription className="text-amber-700 text-base">
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '1rem',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+            border: '2px solid #fbcfe8',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem'
+            }}>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                border: '2px solid #fbcfe8'
+              }}>
+                <h4 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  color: '#be185d',
+                  marginBottom: '0.75rem'
+                }}>Contacto de Confianza</h4>
+                <p style={{
+                  color: '#be185d',
+                  fontSize: '0.875rem',
+                  lineHeight: '1.6',
+                  marginBottom: '1.5rem'
+                }}>
                   Esta persona podrá activar el envío manualmente
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <Label htmlFor="trusted-contact" className="text-amber-800 font-semibold">Email del contacto de confianza</Label>
+                </p>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.5rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem'
+                  }}>
+                    <Label htmlFor="trusted-contact" style={{
+                      color: '#be185d',
+                      fontWeight: '500',
+                      fontSize: '0.875rem'
+                    }}>Email del contacto de confianza</Label>
                     <Input
                       id="trusted-contact"
                       type="email"
                       placeholder="contacto@email.com"
                       value={trustedContact}
                       onChange={(e) => setTrustedContact(e.target.value)}
-                      className="mt-2 border-2 border-amber-200 focus:border-amber-500 rounded-lg"
+                      style={{
+                        border: '2px solid #fbcfe8',
+                        borderRadius: '0.5rem',
+                        padding: '0.75rem',
+                        fontSize: '1rem',
+                        outline: 'none',
+                        transition: 'border-color 0.2s'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#ec4899'
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#fbcfe8'
+                      }}
                     />
                   </div>
-                  <div className="bg-white p-6 rounded-xl border-2 border-amber-200">
-                    <h4 className="font-semibold text-amber-800 mb-3 text-lg">¿Cómo funciona?</h4>
-                    <ul className="text-amber-700 space-y-2">
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    border: '2px solid #fbcfe8',
+                    padding: '1.5rem'
+                  }}>
+                    <h4 style={{
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: '#be185d',
+                      marginBottom: '0.75rem'
+                    }}>¿Cómo funciona?</h4>
+                    <ul style={{
+                      color: '#be185d',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.6',
+                      margin: 0,
+                      padding: 0,
+                      listStyle: 'none'
+                    }}>
                       <li>• Tu contacto de confianza puede activar el envío manualmente</li>
                       <li>• Si no respondes al check-in anual, se le notificará automáticamente</li>
                       <li>• Solo esta persona puede autorizar el envío del TimeCapsule</li>
                     </ul>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Button 
-              variant="outline" 
-              onClick={() => setCurrentStep("dashboard")} 
-              className="w-full border-2 border-rose-200 text-rose-700 hover:bg-rose-50 text-lg font-medium py-4 rounded-xl transition-all duration-200 mt-8"
-            >
-              Volver al Inicio
-            </Button>
+              <button
+                onClick={() => setCurrentStep("dashboard")}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                  color: 'white',
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)',
+                  transition: 'all 0.2s',
+                  transform: 'scale(1)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)'
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
+                }}
+              >
+                Volver al Inicio
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -439,128 +956,358 @@ export default function LegacyVideoApp() {
   if (currentStep === "library") {
     if (viewingCompiled) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-          <div className="container mx-auto p-6 max-w-4xl">
-            <div className="mb-8 text-center">
-              <h1 className="text-4xl font-bold text-rose-900 mb-4">Video Compilado Final</h1>
-              <p className="text-rose-700 text-lg leading-relaxed">
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            maxWidth: '64rem',
+            margin: '0 auto'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h1 style={{
+                fontSize: '2.5rem',
+                fontWeight: 'bold',
+                color: '#be185d',
+                marginBottom: '1rem',
+                margin: '0 0 1rem 0'
+              }}>Video Compilado Final</h1>
+              <p style={{
+                color: '#be185d',
+                fontSize: '1.125rem',
+                lineHeight: '1.6',
+                margin: '0 0 1.5rem 0'
+              }}>
                 Este es el video completo que se enviará a tus contactos
               </p>
             </div>
 
-            <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="text-center py-8">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <Play className="w-12 h-12 text-white" />
-                  </div>
-                  <h3 className="font-semibold mb-2">TimeCapsule Completa</h3>
-                  <p className="text-rose-700 mb-4">
-                    {recordedVideos.length} videos • Duración total: {getTotalDuration()}
-                  </p>
-                  <div className="space-y-2 text-sm text-gray-600 text-left max-w-sm mx-auto">
-                    {recordedVideos.map((video, index) => (
-                      <div key={video.id} className="flex justify-between">
-                        <span>
-                          {index + 1}. {video.title}
-                        </span>
-                        <span>{video.duration}</span>
-                      </div>
-                    ))}
-                  </div>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: '1rem',
+              padding: '2rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+              border: 'none'
+            }}>
+              <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+                <div style={{
+                  width: '6rem',
+                  height: '6rem',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)'
+                }}>
+                  <Play style={{ width: '3rem', height: '3rem', color: 'white' }} />
                 </div>
-                <Button className="w-full" size="lg">
-                  <Play className="w-5 h-5 mr-2" />
-                  Reproducir Video Completo
-                </Button>
-              </CardContent>
-            </Card>
+                <h3 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem'
+                }}>TimeCapsule Completa</h3>
+                <p style={{
+                  color: '#be185d',
+                  marginBottom: '1.5rem'
+                }}>
+                  {recordedVideos.length} videos • Duración total: {getTotalDuration()}
+                </p>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                  textAlign: 'left',
+                  maxWidth: '20rem',
+                  margin: '0 auto'
+                }}>
+                  {recordedVideos.map((video, index) => (
+                    <div key={video.id} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span style={{
+                        fontSize: '0.875rem',
+                        color: '#4b5563'
+                      }}>
+                        {index + 1}. {video.title}
+                      </span>
+                      <span style={{
+                        fontSize: '0.875rem',
+                        color: '#4b5563'
+                      }}>{video.duration}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: 'white',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                padding: '1rem',
+                borderRadius: '0.75rem',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)',
+                transition: 'all 0.2s',
+                transform: 'scale(1)'
+              }}>
+                <Play style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
+                Reproducir Video Completo
+              </button>
+            </div>
 
-            <Button variant="outline" onClick={() => setViewingCompiled(false)} className="w-full border-2 border-rose-200 text-rose-700 hover:bg-rose-50 text-lg font-medium py-4 rounded-xl transition-all duration-200">
+            <button
+              onClick={() => setViewingCompiled(false)}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: '2px solid #fbcfe8',
+                color: '#be185d',
+                fontSize: '1.125rem',
+                fontWeight: '500',
+                padding: '1rem',
+                borderRadius: '0.75rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#fdf2f8'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'transparent'
+              }}
+            >
               Volver a la Biblioteca
-            </Button>
+            </button>
           </div>
         </div>
       )
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-        <div className="container mx-auto p-6 max-w-4xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-rose-900 mb-4">Tu Biblioteca de Memorias</h1>
-            <p className="text-rose-700 text-lg leading-relaxed">Todos tus videos anuales guardados para la posteridad</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
+        padding: '1.5rem'
+      }}>
+        <div style={{
+          maxWidth: '64rem',
+          margin: '0 auto'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              color: '#be185d',
+              marginBottom: '1rem',
+              margin: '0 0 1rem 0'
+            }}>Tu Biblioteca de Memorias</h1>
+            <p style={{
+              color: '#be185d',
+              fontSize: '1.125rem',
+              lineHeight: '1.6',
+              margin: '0 0 1.5rem 0'
+            }}>Todos tus videos anuales guardados para la posteridad</p>
           </div>
 
-          <Card className="mb-8 border-2 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Video className="w-8 h-8 text-white" />
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '1rem',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+            border: '2px solid #fbcfe8',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}>
+                <div style={{
+                  width: '4rem',
+                  height: '4rem',
+                  background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
+                }}>
+                  <Video style={{ width: '2rem', height: '2rem', color: 'white' }} />
+                </div>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <h4 style={{
+                    fontSize: '1.25rem',
+                    fontWeight: '600',
+                    color: '#be185d',
+                    margin: '0 0 0.5rem 0'
+                  }}>Video Compilado Final</h4>
+                  <p style={{
+                    color: '#be185d',
+                    margin: 0
+                  }}>
+                    {recordedVideos.length} videos • {getTotalDuration()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingCompiled(true)}
+                style={{
+                  background: 'transparent',
+                  border: '2px solid #fbcfe8',
+                  color: '#be185d',
+                  fontSize: '1.125rem',
+                  fontWeight: '500',
+                  padding: '0.75rem',
+                  borderRadius: '0.75rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#fdf2f8'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                <Eye style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
+                Ver
+              </button>
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            marginBottom: '2rem'
+          }}>
+            {recordedVideos.map((video) => (
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '1rem',
+                padding: '1.5rem',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                border: 'none'
+              }} key={video.id}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                  }}>
+                    <div style={{
+                      width: '4rem',
+                      height: '4rem',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)'
+                    }}>
+                      <Play style={{ width: '2rem', height: '2rem', color: 'white' }} />
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}>
+                      <h4 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: '600',
+                        color: '#be185d',
+                        margin: '0 0 0.5rem 0'
+                      }}>{video.title}</h4>
+                      <p style={{
+                        color: '#be185d',
+                        margin: 0
+                      }}>
+                        Año {video.year} • {video.duration}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-rose-900">Video Compilado Final</h4>
-                    <p className="text-rose-700">
-                      {recordedVideos.length} videos • {getTotalDuration()}
-                    </p>
+                  <div style={{
+                    display: 'flex',
+                    gap: '0.75rem'
+                  }}>
+                    <button style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#be185d',
+                      cursor: 'pointer',
+                      borderRadius: '0.75rem',
+                      transition: 'all 0.2s'
+                    }}>
+                      <Play style={{ width: '1.25rem', height: '1.25rem' }} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteVideo(video.id)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#dc2626',
+                        cursor: 'pointer',
+                        borderRadius: '0.75rem',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.background = '#fef3f2'
+                        e.currentTarget.style.color = '#991b1b'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.color = '#dc2626'
+                      }}
+                    >
+                      <Trash2 style={{ width: '1.25rem', height: '1.25rem' }} />
+                    </button>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={() => setViewingCompiled(true)}
-                  className="border-2 border-rose-300 text-rose-700 hover:bg-rose-50 rounded-lg"
-                >
-                  <Eye className="w-5 h-5 mr-2" />
-                  Ver
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <div className="space-y-4 mb-8">
-            {recordedVideos.map((video) => (
-              <Card key={video.id} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Play className="w-8 h-8 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-semibold text-rose-900">{video.title}</h4>
-                        <p className="text-rose-700">
-                          Año {video.year} • {video.duration}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-3">
-                      <Button variant="ghost" size="lg" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg">
-                        <Play className="w-5 h-5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="lg"
-                        onClick={() => handleDeleteVideo(video.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             ))}
           </div>
 
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentStep("dashboard")} 
-            className="w-full border-2 border-rose-200 text-rose-700 hover:bg-rose-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+          <button
+            onClick={() => setCurrentStep("dashboard")}
+            style={{
+              width: '100%',
+              background: 'transparent',
+              border: '2px solid #fbcfe8',
+              color: '#be185d',
+              fontSize: '1.125rem',
+              fontWeight: '500',
+              padding: '1rem',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#fdf2f8'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'transparent'
+            }}
           >
             Volver al Inicio
-          </Button>
+          </button>
         </div>
       </div>
     )
