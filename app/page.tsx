@@ -31,11 +31,15 @@ export default function LegacyVideoApp() {
   const [reminderDate, setReminderDate] = useState("")
   const [isRecording, setIsRecording] = useState(false)
   const [recordedVideos, setRecordedVideos] = useState([
-    { id: 1, year: 2023, title: "Mi reflexión de 2023", duration: "0:58" },
-    { id: 2, year: 2024, title: "Pensamientos de 2024", duration: "1:00" },
+    { id: 1, year: 2023, title: "Mi reflexión de 2023", duration: "0:58", blob: null },
+    { id: 2, year: 2024, title: "Pensamientos de 2024", duration: "1:00", blob: null },
   ])
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [currentVideo, setCurrentVideo] = useState<any>(null)
   const [viewingCompiled, setViewingCompiled] = useState(false)
-  const [trustedContact, setTrustedContact] = useState("")
+  const [trustedContacts, setTrustedContacts] = useState(["", "", ""])
+  const [savedContacts, setSavedContacts] = useState(false)
   const [familyContacts, setFamilyContacts] = useState([
     { id: 1, name: "María González", email: "maria@email.com", relation: "Hija" },
     { id: 2, name: "Carlos González", email: "carlos@email.com", relation: "Hijo" },
@@ -96,25 +100,90 @@ export default function LegacyVideoApp() {
 
   const getCurrentYear = () => new Date().getFullYear()
 
-  const handleStartRecording = () => {
+  const handleStartRecording = async () => {
     if (!canRecordThisYear()) {
       return
     }
 
-    setIsRecording(true)
-    setTimeout(() => {
-      setIsRecording(false)
-      setRecordedVideos([
-        ...recordedVideos,
-        {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      })
+      setStream(mediaStream)
+      
+      const recorder = new MediaRecorder(mediaStream)
+      const chunks: Blob[] = []
+      
+      recorder.ondataavailable = (event) => {
+        chunks.push(event.data)
+      }
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' })
+        const newVideo = {
           id: Date.now(),
           year: getCurrentYear(),
           title: `Mi video de ${getCurrentYear()}`,
-          duration: "0:45",
-        },
-      ])
-      setCurrentStep("library")
-    }, 3000)
+          duration: "1:00",
+          blob: blob
+        }
+        setRecordedVideos([...recordedVideos, newVideo])
+        setCurrentVideo(newVideo)
+        setCurrentStep("library")
+      }
+      
+      setMediaRecorder(recorder)
+      recorder.start()
+      setIsRecording(true)
+      
+      // Detener después de 1 minuto
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+          recorder.stop()
+          mediaStream.getTracks().forEach(track => track.stop())
+          setIsRecording(false)
+          setStream(null)
+          setMediaRecorder(null)
+        }
+      }, 60000)
+      
+    } catch (error) {
+      console.error('Error accessing camera:', error)
+      alert('No se pudo acceder a la cámara. Por favor, permite el acceso a la cámara y micrófono.')
+    }
+  }
+
+  const handleStopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop()
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+      }
+      setIsRecording(false)
+      setStream(null)
+      setMediaRecorder(null)
+    }
+  }
+
+  const handlePlayVideo = (video: any) => {
+    if (video.blob) {
+      const url = URL.createObjectURL(video.blob)
+      setCurrentVideo({ ...video, url })
+    } else {
+      // Video de ejemplo si no hay blob
+      setCurrentVideo({ ...video, url: '/sample-video.mp4' })
+    }
+  }
+
+  const handleSaveContacts = () => {
+    const validContacts = trustedContacts.filter(email => email.trim() !== '')
+    if (validContacts.length > 0) {
+      setSavedContacts(true)
+      alert('Contactos guardados exitosamente')
+    } else {
+      alert('Por favor, ingresa al menos un email válido')
+    }
   }
 
   const handleDeleteVideo = (videoId: number) => {
@@ -572,10 +641,38 @@ export default function LegacyVideoApp() {
                     e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
                   }}
                 >
-                  <Video style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem', display: 'inline' }} />
-                  Comenzar Grabación (1 min)
-                </button>
-              ) : (
+                                     <Video style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem', display: 'inline' }} />
+                   Comenzar Grabación (1 min)
+                 </button>
+                 
+                 {isRecording && (
+                   <button
+                     onClick={handleStopRecording}
+                     style={{
+                       width: '100%',
+                       background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                       color: 'white',
+                       fontSize: '1.125rem',
+                       fontWeight: '600',
+                       padding: '1rem',
+                       borderRadius: '0.75rem',
+                       border: 'none',
+                       cursor: 'pointer',
+                       boxShadow: '0 10px 25px -5px rgba(220, 38, 38, 0.4)',
+                       transition: 'all 0.2s',
+                       marginTop: '1rem'
+                     }}
+                     onMouseOver={(e) => {
+                       e.currentTarget.style.background = 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)'
+                     }}
+                     onMouseOut={(e) => {
+                       e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
+                     }}
+                                        >
+                       ⏹️ Detener Grabación
+                     </button>
+                   )}
+                ) : (
                 <div style={{ textAlign: 'center', padding: '3rem 0' }}>
                   <div style={{
                     width: '5rem',
@@ -864,32 +961,108 @@ export default function LegacyVideoApp() {
                     flexDirection: 'column',
                     gap: '0.75rem'
                   }}>
-                    <Label htmlFor="trusted-contact" style={{
-                      color: '#be185d',
-                      fontWeight: '500',
-                      fontSize: '0.875rem'
-                    }}>Email del contacto de confianza</Label>
-                    <Input
-                      id="trusted-contact"
-                      type="email"
-                      placeholder="contacto@email.com"
-                      value={trustedContact}
-                      onChange={(e) => setTrustedContact(e.target.value)}
-                      style={{
-                        border: '2px solid #fbcfe8',
-                        borderRadius: '0.5rem',
-                        padding: '0.75rem',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        transition: 'border-color 0.2s'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = '#ec4899'
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = '#fbcfe8'
-                      }}
-                    />
+                                         <div style={{ marginBottom: '1.5rem' }}>
+                       <h4 style={{
+                         fontSize: '1.25rem',
+                         fontWeight: '600',
+                         color: '#be185d',
+                         marginBottom: '1rem'
+                       }}>Contactos de Confianza (máximo 3)</h4>
+                       <p style={{
+                         color: '#be185d',
+                         fontSize: '0.875rem',
+                         lineHeight: '1.6',
+                         marginBottom: '1rem'
+                       }}>
+                         Estas personas podrán activar el envío manualmente
+                       </p>
+                     </div>
+                     
+                     {trustedContacts.map((contact, index) => (
+                       <div key={index} style={{
+                         display: 'flex',
+                         flexDirection: 'column',
+                         gap: '0.5rem',
+                         marginBottom: '1rem'
+                       }}>
+                         <label style={{
+                           color: '#be185d',
+                           fontWeight: '500',
+                           fontSize: '0.875rem'
+                         }}>
+                           Email del contacto {index + 1}
+                         </label>
+                         <input
+                           type="email"
+                           placeholder={`contacto${index + 1}@email.com`}
+                           value={contact}
+                           onChange={(e) => {
+                             const newContacts = [...trustedContacts]
+                             newContacts[index] = e.target.value
+                             setTrustedContacts(newContacts)
+                           }}
+                           style={{
+                             border: '2px solid #fbcfe8',
+                             borderRadius: '0.5rem',
+                             padding: '0.75rem',
+                             fontSize: '1rem',
+                             outline: 'none',
+                             transition: 'border-color 0.2s'
+                           }}
+                           onFocus={(e) => {
+                             e.target.style.borderColor = '#ec4899'
+                           }}
+                           onBlur={(e) => {
+                             e.target.style.borderColor = '#fbcfe8'
+                           }}
+                         />
+                       </div>
+                     ))}
+                     
+                     <button
+                       onClick={handleSaveContacts}
+                       style={{
+                         width: '100%',
+                         background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                         color: 'white',
+                         fontSize: '1rem',
+                         fontWeight: '600',
+                         padding: '0.75rem',
+                         borderRadius: '0.5rem',
+                         border: 'none',
+                         cursor: 'pointer',
+                         boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)',
+                         transition: 'all 0.2s',
+                         marginTop: '1rem'
+                       }}
+                       onMouseOver={(e) => {
+                         e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
+                       }}
+                       onMouseOut={(e) => {
+                         e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
+                       }}
+                     >
+                       Guardar Contactos
+                     </button>
+                     
+                     {savedContacts && (
+                       <div style={{
+                         background: '#f0fdf4',
+                         border: '2px solid #bbf7d0',
+                         borderRadius: '0.5rem',
+                         padding: '1rem',
+                         marginTop: '1rem',
+                         textAlign: 'center'
+                       }}>
+                         <p style={{
+                           color: '#166534',
+                           fontWeight: '500',
+                           margin: 0
+                         }}>
+                           ✅ Contactos guardados exitosamente
+                         </p>
+                       </div>
+                     )}
                   </div>
                   <div style={{
                     background: 'white',
@@ -1164,29 +1337,35 @@ export default function LegacyVideoApp() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setViewingCompiled(true)}
-                style={{
-                  background: 'transparent',
-                  border: '2px solid #fbcfe8',
-                  color: '#be185d',
-                  fontSize: '1.125rem',
-                  fontWeight: '500',
-                  padding: '0.75rem',
-                  borderRadius: '0.75rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = '#fdf2f8'
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                }}
-              >
-                <Eye style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
-                Ver
-              </button>
+                             <button
+                 onClick={() => {
+                   if (recordedVideos.length > 0) {
+                     setViewingCompiled(true)
+                   } else {
+                     alert('No hay videos grabados aún. Graba tu primer video para ver el compilado.')
+                   }
+                 }}
+                 style={{
+                   background: 'transparent',
+                   border: '2px solid #fbcfe8',
+                   color: '#be185d',
+                   fontSize: '1.125rem',
+                   fontWeight: '500',
+                   padding: '0.75rem',
+                   borderRadius: '0.75rem',
+                   cursor: 'pointer',
+                   transition: 'all 0.2s'
+                 }}
+                 onMouseOver={(e) => {
+                   e.currentTarget.style.background = '#fdf2f8'
+                 }}
+                 onMouseOut={(e) => {
+                   e.currentTarget.style.background = 'transparent'
+                 }}
+               >
+                 <Eye style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
+                 Ver
+               </button>
             </div>
           </div>
 
@@ -1248,16 +1427,25 @@ export default function LegacyVideoApp() {
                     display: 'flex',
                     gap: '0.75rem'
                   }}>
-                    <button style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#be185d',
-                      cursor: 'pointer',
-                      borderRadius: '0.75rem',
-                      transition: 'all 0.2s'
-                    }}>
-                      <Play style={{ width: '1.25rem', height: '1.25rem' }} />
-                    </button>
+                                         <button 
+                       onClick={() => handlePlayVideo(video)}
+                       style={{
+                         background: 'transparent',
+                         border: 'none',
+                         color: '#be185d',
+                         cursor: 'pointer',
+                         borderRadius: '0.75rem',
+                         transition: 'all 0.2s'
+                       }}
+                       onMouseOver={(e) => {
+                         e.currentTarget.style.background = '#fdf2f8'
+                       }}
+                       onMouseOut={(e) => {
+                         e.currentTarget.style.background = 'transparent'
+                       }}
+                     >
+                       <Play style={{ width: '1.25rem', height: '1.25rem' }} />
+                     </button>
                     <button
                       onClick={() => handleDeleteVideo(video.id)}
                       style={{
@@ -1308,6 +1496,107 @@ export default function LegacyVideoApp() {
           >
             Volver al Inicio
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Modal de reproducción de video
+  if (currentVideo) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '1rem'
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '1rem',
+          padding: '2rem',
+          maxWidth: '90vw',
+          maxHeight: '90vh',
+          position: 'relative'
+        }}>
+          <button
+            onClick={() => setCurrentVideo(null)}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              background: 'transparent',
+              border: 'none',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              color: '#6b7280',
+              zIndex: 1
+            }}
+          >
+            ✕
+          </button>
+          
+          <div style={{ textAlign: 'center' }}>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: '#be185d',
+              marginBottom: '1rem'
+            }}>
+              {currentVideo.title}
+            </h3>
+            
+            {currentVideo.url && (
+              <video
+                controls
+                style={{
+                  width: '100%',
+                  maxWidth: '600px',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1rem'
+                }}
+                src={currentVideo.url}
+              >
+                Tu navegador no soporta la reproducción de video.
+              </video>
+            )}
+            
+            <p style={{
+              color: '#6b7280',
+              marginBottom: '1rem'
+            }}>
+              Año {currentVideo.year} • {currentVideo.duration}
+            </p>
+            
+            <button
+              onClick={() => setCurrentVideo(null)}
+              style={{
+                background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: '600',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
+              }}
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     )
