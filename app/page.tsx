@@ -48,34 +48,36 @@ export default function LegacyVideoApp() {
       title: "Un Regalo Para Tus Seres Queridos",
       description:
         "Crea una cápsula del tiempo digital que perdurará para siempre. Cada año, dedica un minuto a compartir tus pensamientos, experiencias y amor.",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1-EHpdxWsvTwc6tv25ayfyZ2e2Ij5F9E.png",
+      icon: "💝",
+      color: "from-pink-500 to-rose-500"
     },
     {
       title: "Tu Crecimiento a Través del Tiempo",
       description:
         "Imagina a tus hijos viendo tu evolución desde los 8 hasta los 53 años. Un minuto por año que cuenta la historia de tu vida y sabiduría.",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2-pLtyTLGv0NlQjOK3KwmKTI6Tmmypkk.png",
+      icon: "⏰",
+      color: "from-blue-500 to-indigo-500"
     },
     {
       title: "Memorias que Inspiran",
       description:
         "Comparte momentos de alegría, lecciones aprendidas y palabras de amor. Deja un legado positivo que inspire a las futuras generaciones.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_42_35%20p.m.-JfPLBdDkKSfIzqcyU6e7E0eGGMwdx1.png",
+      icon: "🌟",
+      color: "from-yellow-500 to-orange-500"
     },
     {
       title: "Un Tesoro Familiar",
       description:
         "Tus videos se compilarán en un hermoso recuerdo que tus familiares atesorarán para siempre. Una ventana a tu corazón y tu historia.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_46_42%20p.m.-8nEBJCuaaZ3BZ2v8SlDDTLMuXYNxbm.png",
+      icon: "💎",
+      color: "from-purple-500 to-pink-500"
     },
     {
       title: "Tu Legado Digital",
       description:
         "Cuando llegue el momento, tus seres queridos recibirán este regalo especial. Un recordatorio eterno de tu amor y las lecciones que compartiste.",
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_53_36%20p.m.-pIAP8nAyGlQCxB4MYuDCpE5Ie6pVPD.png",
+      icon: "🕊️",
+      color: "from-green-500 to-teal-500"
     },
   ]
 
@@ -131,84 +133,84 @@ export default function LegacyVideoApp() {
 
   if (showIntro) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-lg">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <div className="mx-auto mb-4 w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center">
-                <Heart className="w-10 h-10 text-rose-600" />
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <div className="mx-auto mb-6 w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                <Heart className="w-12 h-12 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-rose-900 mb-2">TimeCapsule</h1>
-              <p className="text-rose-700 text-sm">Tu legado digital para las futuras generaciones</p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">TimeCapsule</h1>
+              <p className="text-gray-600 text-lg">Tu legado digital para las futuras generaciones</p>
             </div>
 
             <div className="relative">
-              <div className="aspect-[3/2] mb-4 rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={introSlides[currentSlide].image || "/placeholder.svg"}
-                  alt={introSlides[currentSlide].title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3 text-balance">
-                  {introSlides[currentSlide].title}
-                </h2>
-                <p className="text-gray-600 text-sm leading-relaxed text-pretty">
-                  {introSlides[currentSlide].description}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between mb-6">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={prevSlide}
-                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-
-                <div className="flex space-x-2">
-                  {introSlides.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentSlide ? "bg-rose-600" : "bg-rose-200"
-                      }`}
-                    />
-                  ))}
+              <div className="mb-8">
+                <div className={`w-full h-48 bg-gradient-to-br ${introSlides[currentSlide].color} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>
+                  <div className="text-6xl">{introSlides[currentSlide].icon}</div>
                 </div>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={nextSlide}
-                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 text-balance">
+                    {introSlides[currentSlide].title}
+                  </h2>
+                  <p className="text-gray-600 text-base leading-relaxed text-pretty">
+                    {introSlides[currentSlide].description}
+                  </p>
+                </div>
 
-              <div className="space-y-3">
-                {currentSlide === introSlides.length - 1 ? (
+                <div className="flex items-center justify-between mb-8">
                   <Button
-                    onClick={() => setShowIntro(false)}
-                    className="w-full bg-rose-600 hover:bg-rose-700 text-white"
-                    size="lg"
+                    variant="ghost"
+                    size="sm"
+                    onClick={prevSlide}
+                    className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full w-10 h-10 p-0"
                   >
-                    Comenzar Mi TimeCapsule
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
-                ) : (
+
+                  <div className="flex space-x-3">
+                    {introSlides.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                          index === currentSlide 
+                            ? "bg-rose-500 scale-125" 
+                            : "bg-gray-300 hover:bg-gray-400"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
                   <Button
-                    variant="outline"
-                    onClick={() => setShowIntro(false)}
-                    className="w-full border-rose-200 text-rose-700 hover:bg-rose-50"
+                    variant="ghost"
+                    size="sm"
+                    onClick={nextSlide}
+                    className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full w-10 h-10 p-0"
                   >
-                    Saltar Introducción
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                )}
+                </div>
+
+                <div className="space-y-4">
+                  {currentSlide === introSlides.length - 1 ? (
+                    <Button 
+                      onClick={() => setShowIntro(false)}
+                      className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-lg font-semibold py-4 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105"
+                      size="lg"
+                    >
+                      Comenzar Mi TimeCapsule
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowIntro(false)}
+                      className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+                    >
+                      Saltar Introducción
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -219,30 +221,34 @@ export default function LegacyVideoApp() {
 
   if (currentStep === "welcome") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Heart className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <div className="mx-auto mb-6 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+              <Heart className="w-10 h-10 text-white" />
             </div>
-            <CardTitle className="text-2xl text-balance">Bienvenido a TimeCapsule</CardTitle>
-            <CardDescription className="text-pretty">
+            <CardTitle className="text-3xl font-bold text-gray-900 mb-3">Bienvenido a TimeCapsule</CardTitle>
+            <CardDescription className="text-gray-600 text-base leading-relaxed">
               Crea un legado hermoso que inspire a tus seres queridos por generaciones
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="reminder-date">¿Cuándo quieres grabar tu primer video?</Label>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="reminder-date" className="text-gray-700 font-medium">¿Cuándo quieres grabar tu primer video?</Label>
               <Input
                 id="reminder-date"
                 type="date"
                 value={reminderDate}
                 onChange={(e) => setReminderDate(e.target.value)}
-                className="w-full"
+                className="w-full border-2 border-gray-200 focus:border-blue-500 rounded-lg py-3"
               />
             </div>
-            <Button onClick={() => setCurrentStep("dashboard")} className="w-full" disabled={!reminderDate}>
-              <Calendar className="w-4 h-4 mr-2" />
+            <Button 
+              onClick={() => setCurrentStep("dashboard")} 
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg shadow-lg" 
+              disabled={!reminderDate}
+            >
+              <Calendar className="w-5 h-5 mr-2" />
               Configurar Recordatorio
             </Button>
           </CardContent>
@@ -253,62 +259,66 @@ export default function LegacyVideoApp() {
 
   if (currentStep === "dashboard") {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-4 max-w-2xl">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-balance mb-2">Tu TimeCapsule Digital</h1>
-            <p className="text-muted-foreground text-pretty">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="container mx-auto p-6 max-w-4xl">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Tu TimeCapsule Digital</h1>
+            <p className="text-gray-600 text-lg leading-relaxed max-w-2xl mx-auto">
               Es hora de grabar tu video anual. Comparte momentos de alegría, lecciones aprendidas y palabras de amor
               que inspiren a tus seres queridos.
             </p>
           </div>
 
-          <div className="grid gap-4 mb-6">
-            <Card className={`${canRecordThisYear() ? "border-primary/20" : "border-gray-200 bg-gray-50"}`}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+          <div className="grid gap-6 mb-8">
+            <Card className={`${canRecordThisYear() ? "border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50" : "border-2 border-gray-200 bg-gray-50"} shadow-lg`}>
+              <CardContent className="p-8">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="font-semibold">Video Anual {getCurrentYear()}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="text-2xl font-bold text-gray-900">Video Anual {getCurrentYear()}</h3>
+                    <p className="text-gray-600 mt-2">
                       {canRecordThisYear() ? "Comparte tu crecimiento y sabiduría" : "Ya grabaste tu video de este año"}
                     </p>
                   </div>
-                  <Badge variant={canRecordThisYear() ? "secondary" : "outline"}>
-                    <Clock className="w-3 h-3 mr-1" />
+                  <Badge variant={canRecordThisYear() ? "secondary" : "outline"} className="text-sm font-medium px-4 py-2">
+                    <Clock className="w-4 h-4 mr-2" />
                     {canRecordThisYear() ? "Pendiente" : "Completado"}
                   </Badge>
                 </div>
 
                 {canRecordThisYear() ? (
                   !isRecording ? (
-                    <Button onClick={handleStartRecording} className="w-full" size="lg">
-                      <Video className="w-5 h-5 mr-2" />
+                    <Button 
+                      onClick={handleStartRecording} 
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg font-semibold py-4 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105" 
+                      size="lg"
+                    >
+                      <Video className="w-6 h-6 mr-3" />
                       Comenzar Grabación (1 min)
                     </Button>
                   ) : (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                        <Video className="w-8 h-8 text-primary" />
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse shadow-lg">
+                        <Video className="w-10 h-10 text-white" />
                       </div>
-                      <p className="font-medium">Grabando...</p>
-                      <p className="text-sm text-muted-foreground">Comparte momentos hermosos y lecciones de vida</p>
+                      <p className="text-xl font-semibold text-gray-900 mb-2">Grabando...</p>
+                      <p className="text-gray-600">Comparte momentos hermosos y lecciones de vida</p>
                     </div>
                   )
                 ) : (
-                  <div className="text-center py-6">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="w-8 h-8 text-green-600" />
+                  <div className="text-center py-8">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <CheckCircle className="w-10 h-10 text-white" />
                     </div>
-                    <p className="font-medium text-gray-700">Video de {getCurrentYear()} Completado</p>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-xl font-semibold text-gray-900 mb-2">Video de {getCurrentYear()} Completado</p>
+                    <p className="text-gray-600 mb-6">
                       Solo puedes grabar un video por año para mantener la esencia de TimeCapsule
                     </p>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-start space-x-3">
-                        <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                      <div className="flex items-start space-x-4">
+                        <AlertCircle className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
                         <div className="text-left">
-                          <p className="text-sm font-medium text-blue-800">¿Por qué solo un video por año?</p>
-                          <p className="text-sm text-blue-700 mt-1">
+                          <p className="text-lg font-semibold text-blue-900 mb-2">¿Por qué solo un video por año?</p>
+                          <p className="text-blue-800 leading-relaxed">
                             Cada video representa un momento único en tu vida. Esta limitación hace que cada grabación
                             sea más significativa y mantiene el propósito original de crear una cápsula del tiempo
                             auténtica.
@@ -321,31 +331,43 @@ export default function LegacyVideoApp() {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Users className="w-8 h-8 text-accent mx-auto mb-2" />
-                  <h4 className="font-medium">Contactos</h4>
-                  <p className="text-sm text-muted-foreground">{familyContacts.length} familiares</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <Users className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Contactos</h4>
+                  <p className="text-gray-600">{familyContacts.length} familiares</p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Shield className="w-8 h-8 text-accent mx-auto mb-2" />
-                  <h4 className="font-medium">Sistema de Legado</h4>
-                  <p className="text-sm text-muted-foreground">Configurado</p>
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <Shield className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Sistema de Legado</h4>
+                  <p className="text-gray-600">Configurado</p>
                 </CardContent>
               </Card>
             </div>
           </div>
 
           <div className="space-y-4">
-            <Button variant="outline" onClick={() => setCurrentStep("library")} className="w-full">
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentStep("library")} 
+              className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+            >
               Ver Videos Anteriores
             </Button>
-            <Button variant="outline" onClick={() => setCurrentStep("legacy")} className="w-full">
-              <Shield className="w-4 h-4 mr-2" />
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentStep("legacy")} 
+              className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+            >
+              <Shield className="w-5 h-5 mr-2" />
               Configurar Sistema de Legado
             </Button>
           </div>
@@ -356,42 +378,42 @@ export default function LegacyVideoApp() {
 
   if (currentStep === "legacy") {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-4 max-w-2xl">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-balance mb-2">Sistema de Legado Digital</h1>
-            <p className="text-muted-foreground text-pretty">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="container mx-auto p-6 max-w-4xl">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Sistema de Legado Digital</h1>
+            <p className="text-gray-600 text-lg leading-relaxed">
               Configura cómo y cuándo se enviará tu TimeCapsule a tus seres queridos
             </p>
           </div>
 
           <div className="space-y-6">
-            {/* Trusted Contact Section */}
-            <Card className="border-amber-200 bg-amber-50">
+            <Card className="border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center text-amber-800">
-                  <Shield className="w-5 h-5 mr-2" />
+                <CardTitle className="flex items-center text-amber-800 text-2xl">
+                  <Shield className="w-6 h-6 mr-3" />
                   Contacto de Confianza
                 </CardTitle>
-                <CardDescription className="text-amber-700">
+                <CardDescription className="text-amber-700 text-base">
                   Esta persona podrá activar el envío manualmente
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <Label htmlFor="trusted-contact">Email del contacto de confianza</Label>
+                    <Label htmlFor="trusted-contact" className="text-amber-800 font-semibold">Email del contacto de confianza</Label>
                     <Input
                       id="trusted-contact"
                       type="email"
                       placeholder="contacto@email.com"
                       value={trustedContact}
                       onChange={(e) => setTrustedContact(e.target.value)}
+                      className="mt-2 border-2 border-amber-200 focus:border-amber-500 rounded-lg"
                     />
                   </div>
-                  <div className="bg-white p-4 rounded-lg border border-amber-200">
-                    <h4 className="font-medium text-amber-800 mb-2">¿Cómo funciona?</h4>
-                    <ul className="text-sm text-amber-700 space-y-1">
+                  <div className="bg-white p-6 rounded-xl border-2 border-amber-200">
+                    <h4 className="font-semibold text-amber-800 mb-3 text-lg">¿Cómo funciona?</h4>
+                    <ul className="text-amber-700 space-y-2">
                       <li>• Tu contacto de confianza puede activar el envío manualmente</li>
                       <li>• Si no respondes al check-in anual, se le notificará automáticamente</li>
                       <li>• Solo esta persona puede autorizar el envío del TimeCapsule</li>
@@ -401,98 +423,14 @@ export default function LegacyVideoApp() {
               </CardContent>
             </Card>
 
-            {/* Check-in System */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                  Sistema de Verificación
-                </CardTitle>
-                <CardDescription>Verificación anual para confirmar que estás bien</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div>
-                      <p className="font-medium text-green-800">Último check-in</p>
-                      <p className="text-sm text-green-600">{lastCheckIn}</p>
-                    </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Activo
-                    </Badge>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">¿Cómo funciona el check-in?</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Cada año recibirás un recordatorio para confirmar que estás bien</li>
-                      <li>• Si no respondes en 30 días, se notifica a tu contacto de confianza</li>
-                      <li>• Tu contacto puede entonces decidir si activar el envío del TimeCapsule</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Family Contacts */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Contactos Familiares
-                </CardTitle>
-                <CardDescription>Estas personas recibirán tu TimeCapsule y el código QR para la lápida</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {familyContacts.map((contact) => (
-                    <div key={contact.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{contact.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {contact.email} • {contact.relation}
-                        </p>
-                      </div>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full bg-transparent">
-                    <Users className="w-4 h-4 mr-2" />
-                    Agregar Contacto
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* QR Code Info */}
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader>
-                <CardTitle className="flex items-center text-blue-800">
-                  <QrCode className="w-5 h-5 mr-2" />
-                  Código QR para Lápida
-                </CardTitle>
-                <CardDescription className="text-blue-700">
-                  Se enviará automáticamente a tus contactos junto con el video
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white p-4 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-800 mb-2">¿Qué incluye el envío?</h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Video compilado completo con todos tus años</li>
-                    <li>• Código QR para colocar en la lápida</li>
-                    <li>• Instrucciones para acceder al video desde el QR</li>
-                    <li>• Mensaje personalizado de despedida</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentStep("dashboard")} 
+              className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-lg font-medium py-4 rounded-xl transition-all duration-200 mt-8"
+            >
+              Volver al Inicio
+            </Button>
           </div>
-
-          <Button variant="outline" onClick={() => setCurrentStep("dashboard")} className="w-full mt-6">
-            Volver al Inicio
-          </Button>
         </div>
       </div>
     )
@@ -501,26 +439,26 @@ export default function LegacyVideoApp() {
   if (currentStep === "library") {
     if (viewingCompiled) {
       return (
-        <div className="min-h-screen bg-background">
-          <div className="container mx-auto p-4 max-w-2xl">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-balance mb-2">Video Compilado Final</h1>
-              <p className="text-muted-foreground text-pretty">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+          <div className="container mx-auto p-6 max-w-4xl">
+            <div className="mb-8 text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Video Compilado Final</h1>
+              <p className="text-gray-600 text-lg leading-relaxed">
                 Este es el video completo que se enviará a tus contactos
               </p>
             </div>
 
-            <Card className="mb-6">
+            <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="text-center py-8">
-                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Play className="w-12 h-12 text-primary" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <Play className="w-12 h-12 text-white" />
                   </div>
                   <h3 className="font-semibold mb-2">TimeCapsule Completa</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-gray-600 mb-4">
                     {recordedVideos.length} videos • Duración total: {getTotalDuration()}
                   </p>
-                  <div className="space-y-2 text-sm text-muted-foreground text-left max-w-sm mx-auto">
+                  <div className="space-y-2 text-sm text-gray-600 text-left max-w-sm mx-auto">
                     {recordedVideos.map((video, index) => (
                       <div key={video.id} className="flex justify-between">
                         <span>
@@ -538,7 +476,7 @@ export default function LegacyVideoApp() {
               </CardContent>
             </Card>
 
-            <Button variant="outline" onClick={() => setViewingCompiled(false)} className="w-full">
+            <Button variant="outline" onClick={() => setViewingCompiled(false)} className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-lg font-medium py-4 rounded-xl transition-all duration-200">
               Volver a la Biblioteca
             </Button>
           </div>
@@ -547,62 +485,67 @@ export default function LegacyVideoApp() {
     }
 
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-4 max-w-2xl">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-balance mb-2">Tu Biblioteca de Memorias</h1>
-            <p className="text-muted-foreground text-pretty">Todos tus videos anuales guardados para la posteridad</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="container mx-auto p-6 max-w-4xl">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Tu Biblioteca de Memorias</h1>
+            <p className="text-gray-600 text-lg leading-relaxed">Todos tus videos anuales guardados para la posteridad</p>
           </div>
 
-          <Card className="mb-6 border-primary/20">
-            <CardContent className="p-4">
+          <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Video className="w-6 h-6 text-primary" />
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Video className="w-8 h-8 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium">Video Compilado Final</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 className="text-xl font-semibold text-gray-900">Video Compilado Final</h4>
+                    <p className="text-gray-600">
                       {recordedVideos.length} videos • {getTotalDuration()}
                     </p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setViewingCompiled(true)}>
-                  <Eye className="w-4 h-4 mr-1" />
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={() => setViewingCompiled(true)}
+                  className="border-2 border-blue-300 text-blue-700 hover:bg-blue-50 rounded-lg"
+                >
+                  <Eye className="w-5 h-5 mr-2" />
                   Ver
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <div className="space-y-4 mb-6">
+          <div className="space-y-4 mb-8">
             {recordedVideos.map((video) => (
-              <Card key={video.id}>
-                <CardContent className="p-4">
+              <Card key={video.id} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Play className="w-6 h-6 text-primary" />
+                    <div className="flex items-center space-x-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <Play className="w-8 h-8 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-medium">{video.title}</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <h4 className="text-xl font-semibold text-gray-900">{video.title}</h4>
+                        <p className="text-gray-600">
                           Año {video.year} • {video.duration}
                         </p>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Play className="w-4 h-4" />
+                    <div className="flex space-x-3">
+                      <Button variant="ghost" size="lg" className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+                        <Play className="w-5 h-5" />
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="lg"
                         onClick={() => handleDeleteVideo(video.id)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </Button>
                     </div>
                   </div>
@@ -611,22 +554,11 @@ export default function LegacyVideoApp() {
             ))}
           </div>
 
-          <div className="space-y-4">
-            <Card className="border-dashed">
-              <CardContent className="p-6 text-center">
-                <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h4 className="font-medium mb-2">Configuración de Legado</h4>
-                <p className="text-sm text-muted-foreground mb-4 text-pretty">
-                  Estos videos se enviarán automáticamente a tus seres queridos cuando llegue el momento
-                </p>
-                <Button variant="outline" size="sm">
-                  Configurar Contactos
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Button variant="outline" onClick={() => setCurrentStep("dashboard")} className="w-full mt-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setCurrentStep("dashboard")} 
+            className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-lg font-medium py-4 rounded-xl transition-all duration-200"
+          >
             Volver al Inicio
           </Button>
         </div>
