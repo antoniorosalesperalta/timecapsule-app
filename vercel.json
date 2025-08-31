@@ -4,5 +4,11 @@
       "path": "/api/check-reminders",
       "schedule": "0 9 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "regions": ["iad1"]
 }
