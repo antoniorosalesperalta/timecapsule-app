@@ -152,25 +152,29 @@ export default function TimeCapsule() {
         updated_at: new Date().toISOString(),
       })
 
-      if (error) throw error
+      if (error) {
+        console.error("Error saving reminder date:", error)
+        return
+      }
 
       console.log("[v0] Reminder date saved successfully")
       setShowCalendar(false)
       setSetupComplete(true)
     } catch (error) {
-      console.error("[v0] Error saving reminder date:", error)
+      console.error("Error configuring reminder:", error)
     }
   }
 
   const handleAddContact = () => {
-    if (newContact.name && newContact.email && newContact.rut && newContact.relation) {
-      const contact = {
-        id: Date.now(),
-        ...newContact,
-      }
-      setFamilyContacts([...familyContacts, contact])
-      setNewContact({ name: "", email: "", relation: "", rut: "" })
+    if (!newContact.name || !newContact.email || !newContact.rut || !newContact.relation) return
+
+    const contact = {
+      id: Date.now(),
+      ...newContact,
     }
+
+    setFamilyContacts([...familyContacts, contact])
+    setNewContact({ name: "", email: "", relation: "", rut: "" })
   }
 
   const handleEditContact = (contact) => {
@@ -179,6 +183,8 @@ export default function TimeCapsule() {
   }
 
   const handleUpdateContact = () => {
+    if (!editingContact) return
+
     setFamilyContacts(
       familyContacts.map((contact) =>
         contact.id === editingContact.id ? { ...editingContact, ...newContact } : contact,
@@ -188,14 +194,8 @@ export default function TimeCapsule() {
     setNewContact({ name: "", email: "", relation: "", rut: "" })
   }
 
-  const handleDeleteContact = (id) => {
-    setFamilyContacts(familyContacts.filter((contact) => contact.id !== id))
-  }
-
-  const saveTrustedContact = () => {
-    if (trustedContact.name && trustedContact.email) {
-      setTrustedContact({ ...trustedContact, saved: true })
-    }
+  const handleDeleteContact = (contactId) => {
+    setFamilyContacts(familyContacts.filter((contact) => contact.id !== contactId))
   }
 
   const handleViewFiles = (contact) => {
@@ -279,7 +279,7 @@ export default function TimeCapsule() {
         const newVideo = {
           id: Date.now(),
           year: new Date().getFullYear(),
-          duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, "0")}`,
+          duration: "1:00",
           recorded: true,
           url: videoUrl,
         }
@@ -287,15 +287,15 @@ export default function TimeCapsule() {
         setSavedVideos([...savedVideos, newVideo])
         setVideoBlobs({ ...videoBlobs, [newVideo.id]: videoUrl })
         setRecordedVideo(videoUrl)
+        setIsRecording(false)
 
+        // Clean up stream
         mediaStream.getTracks().forEach((track) => track.stop())
         setStream(null)
-        setIsRecording(false)
-        setRecordingTime(0)
       }
 
-      setMediaRecorder(recorder)
       recorder.start()
+      setMediaRecorder(recorder)
       setIsRecording(true)
 
       // Auto-stop after 60 seconds
@@ -304,19 +304,8 @@ export default function TimeCapsule() {
           recorder.stop()
         }
       }, 60000)
-
-      // Update recording time
-      const timer = setInterval(() => {
-        setRecordingTime((prev) => {
-          if (prev >= 60) {
-            clearInterval(timer)
-            return 60
-          }
-          return prev + 1
-        })
-      }, 1000)
     } catch (error) {
-      console.error("Error accessing camera:", error)
+      console.error("Error starting recording:", error)
     }
   }
 
@@ -349,6 +338,11 @@ export default function TimeCapsule() {
     setPlayingVideo(null)
   }
 
+  const saveTrustedContact = () => {
+    if (!trustedContact.name || !trustedContact.email) return
+    setTrustedContact({ ...trustedContact, saved: true })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
@@ -374,14 +368,10 @@ export default function TimeCapsule() {
                 className="w-full h-full object-cover"
               />
             </div>
-
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2 text-balance">{carouselImages[currentSlide].title}</h2>
-              <p className="text-muted-foreground text-pretty leading-relaxed">
-                {carouselImages[currentSlide].description}
-              </p>
-            </div>
-
+            <h2 className="text-2xl font-bold text-center mb-2 text-balance">{carouselImages[currentSlide].title}</h2>
+            <p className="text-muted-foreground text-center mb-6 text-pretty">
+              {carouselImages[currentSlide].description}
+            </p>
             <div className="flex justify-center mb-6">
               {carouselImages.map((_, index) => (
                 <div
@@ -390,13 +380,12 @@ export default function TimeCapsule() {
                 />
               ))}
             </div>
-
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button variant="outline" onClick={skipIntro} className="flex-1 bg-transparent">
                 Saltar
               </Button>
-              <Button onClick={nextSlide} className="flex-1 bg-rose-600 hover:bg-rose-700">
-                {currentSlide === carouselImages.length - 1 ? "Comenzar" : "Siguiente"}
+              <Button onClick={nextSlide} className="flex-1">
+                Siguiente
               </Button>
             </div>
           </CardContent>
@@ -410,38 +399,29 @@ export default function TimeCapsule() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
+            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
             </div>
-
             <h2 className="text-2xl font-bold mb-2">¡Bienvenido a TimeCapsule!</h2>
-            <p className="text-muted-foreground mb-6 text-pretty">
+            <p className="text-muted-foreground mb-6">
               Configura tu primer recordatorio para comenzar tu legado digital
             </p>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="reminderDate" className="text-left block mb-2">
-                  ¿Cuándo quieres grabar tu primer video?
-                </Label>
-                <Input
-                  id="reminderDate"
-                  type="date"
-                  value={reminderDate}
-                  min={getMinDate()}
-                  onChange={(e) => setReminderDate(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              <Button
-                onClick={configureReminder}
-                className="w-full bg-rose-600 hover:bg-rose-700"
-                disabled={!reminderDate}
-              >
-                Configurar Recordatorio
-              </Button>
+            <div className="mb-6">
+              <Label htmlFor="reminderDate" className="text-left block mb-2">
+                ¿Cuándo quieres grabar tu primer video?
+              </Label>
+              <Input
+                id="reminderDate"
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+                min={getMinDate()}
+                className="w-full"
+              />
             </div>
+            <Button onClick={configureReminder} className="w-full" disabled={!reminderDate}>
+              Configurar Recordatorio
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -1085,4 +1065,17 @@ export default function TimeCapsule() {
       </div>
     )
   }
+  playingVideo && (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-4 max-w-2xl w-full">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Reproduciendo Video</h3>
+          <Button variant="outline" size="sm" onClick={handleCloseVideo}>
+            ×
+          </Button>
+        </div>
+        <video src={playingVideo} controls className="w-full rounded" autoPlay />
+      </div>
+    </div>
+  )
 }
