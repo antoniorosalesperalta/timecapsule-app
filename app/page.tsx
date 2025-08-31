@@ -43,10 +43,7 @@ export default function TimeCapsule() {
   const [recordingTime, setRecordingTime] = useState(0)
   const [playingVideo, setPlayingVideo] = useState(null)
   const [videoBlobs, setVideoBlobs] = useState({})
-  const [lifeVideos, setLifeVideos] = useState([
-    { id: 1, year: 2024, duration: "1:00", recorded: true },
-    { id: 2, year: 2025, duration: "0:45", recorded: true },
-  ])
+  const [lifeVideos, setLifeVideos] = useState([])
   const [savedVideos, setSavedVideos] = useState([])
   const [compiledVideoUrl, setCompiledVideoUrl] = useState(null)
   const [editingFile, setEditingFile] = useState(null)
@@ -278,6 +275,7 @@ export default function TimeCapsule() {
 
   const startRecording = async () => {
     try {
+      console.log("[v0] Starting video recording...")
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
@@ -288,16 +286,20 @@ export default function TimeCapsule() {
         videoRef.current.srcObject = mediaStream
       }
 
-      const recorder = new MediaRecorder(mediaStream)
+      const recorder = new MediaRecorder(mediaStream, {
+        mimeType: "video/webm;codecs=vp9",
+      })
       const chunks = []
 
       recorder.ondataavailable = (event) => {
+        console.log("[v0] Recording data available:", event.data.size)
         if (event.data.size > 0) {
           chunks.push(event.data)
         }
       }
 
       recorder.onstop = () => {
+        console.log("[v0] Recording stopped, processing...")
         const blob = new Blob(chunks, { type: "video/webm" })
         const videoUrl = URL.createObjectURL(blob)
         const newVideo = {
@@ -306,10 +308,12 @@ export default function TimeCapsule() {
           duration: "1:00",
           recorded: true,
           url: videoUrl,
+          blob: blob,
         }
 
-        setSavedVideos([...savedVideos, newVideo])
-        setVideoBlobs({ ...videoBlobs, [newVideo.id]: videoUrl })
+        console.log("[v0] Video saved:", newVideo)
+        setSavedVideos((prev) => [...prev, newVideo])
+        setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
         setRecordedVideo(videoUrl)
         setIsRecording(false)
 
@@ -322,40 +326,65 @@ export default function TimeCapsule() {
       setMediaRecorder(recorder)
       setIsRecording(true)
 
+      // Start recording timer
+      const timer = setInterval(() => {
+        setRecordingTime((prev) => prev + 1)
+      }, 1000)
+
       // Auto-stop after 60 seconds
       setTimeout(() => {
         if (recorder.state === "recording") {
           recorder.stop()
+          clearInterval(timer)
+          setRecordingTime(0)
         }
       }, 60000)
     } catch (error) {
-      console.error("Error starting recording:", error)
+      console.error("[v0] Error starting recording:", error)
+      alert("Error al acceder a la cámara. Por favor, permite el acceso.")
     }
   }
 
   const stopRecording = () => {
+    console.log("[v0] Stopping recording manually...")
     if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop()
+      setRecordingTime(0)
     }
   }
 
   const playVideo = (videoUrl) => {
-    setPlayingVideo(videoUrl)
+    console.log("[v0] Playing video:", videoUrl)
+    if (videoUrl) {
+      setPlayingVideo(videoUrl)
+    } else {
+      alert("Video no disponible")
+    }
   }
 
   const playCompiledVideo = () => {
-    // Create a simple compiled video URL for demo
-    const firstVideo = lifeVideos[0] || savedVideos[0]
-    if (firstVideo) {
-      setPlayingVideo(videoBlobs[firstVideo.id] || "demo-compiled-video")
+    console.log("[v0] Playing compiled video...")
+    const allVideos = [...savedVideos]
+    if (allVideos.length > 0) {
+      // For now, play the first video as compiled video
+      const firstVideo = allVideos[0]
+      setPlayingVideo(firstVideo.url || videoBlobs[firstVideo.id])
+    } else {
+      alert("No hay videos grabados para compilar")
     }
   }
 
   const deleteVideo = (videoId) => {
-    setSavedVideos(savedVideos.filter((video) => video.id !== videoId))
-    const newVideoBlobs = { ...videoBlobs }
-    delete newVideoBlobs[videoId]
-    setVideoBlobs(newVideoBlobs)
+    console.log("[v0] Deleting video:", videoId)
+    setSavedVideos((prev) => prev.filter((video) => video.id !== videoId))
+    setVideoBlobs((prev) => {
+      const newBlobs = { ...prev }
+      if (newBlobs[videoId]) {
+        URL.revokeObjectURL(newBlobs[videoId])
+        delete newBlobs[videoId]
+      }
+      return newBlobs
+    })
   }
 
   const handleCloseVideo = () => {
@@ -551,13 +580,32 @@ export default function TimeCapsule() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Video Completo de Vida</CardTitle>
-                  <CardDescription>Compilación de todos tus videos anuales (Duración total: 1:45)</CardDescription>
+                  <CardDescription>Tu compilación completa de videos anuales</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full" onClick={playCompiledVideo}>
-                    <Play className="w-4 h-4 mr-2" />
-                    Reproducir Video Completo
-                  </Button>
+                  {savedVideos.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Video className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-muted-foreground">No hay videos grabados aún</p>
+                      <p className="text-sm text-muted-foreground">Graba tu primer video para ver la compilación</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Video Compilado Final</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {savedVideos.length} video{savedVideos.length !== 1 ? "s" : ""} • Duración total estimada:{" "}
+                            {savedVideos.length}:00
+                          </p>
+                        </div>
+                        <Button onClick={playCompiledVideo}>
+                          <Play className="w-4 h-4 mr-2" />
+                          Reproducir Video Completo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -567,26 +615,32 @@ export default function TimeCapsule() {
                   <CardDescription>Gestiona tus videos anuales individuales</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[...lifeVideos, ...savedVideos].map((video) => (
-                    <div key={video.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">Video {video.year}</h4>
-                        <p className="text-sm text-muted-foreground">Duración: {video.duration}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => playVideo(video.url || videoBlobs[video.id])}
-                        >
-                          <Play className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => deleteVideo(video.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                  {savedVideos.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">No hay videos grabados</p>
                     </div>
-                  ))}
+                  ) : (
+                    savedVideos.map((video) => (
+                      <div key={video.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Video {video.year}</h4>
+                          <p className="text-sm text-muted-foreground">Duración: {video.duration}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => playVideo(video.url || videoBlobs[video.id])}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => deleteVideo(video.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     {!isRecording && !stream ? (
@@ -1100,7 +1154,16 @@ export default function TimeCapsule() {
               ×
             </Button>
           </div>
-          <video src={playingVideo} controls className="w-full rounded" autoPlay />
+          <video
+            src={playingVideo}
+            controls
+            className="w-full rounded"
+            autoPlay
+            onError={(e) => {
+              console.error("[v0] Video playback error:", e)
+              alert("Error al reproducir el video")
+            }}
+          />
         </div>
       </div>
     )
