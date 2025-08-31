@@ -319,17 +319,32 @@ export default function TimeCapsule() {
     }
   }
 
-  const deleteVideo = (videoId) => {
-    console.log("[v0] Deleting video:", videoId)
-    setSavedVideos((prev) => prev.filter((video) => video.id !== videoId))
-    setVideoBlobs((prev) => {
-      const newBlobs = { ...prev }
-      if (newBlobs[videoId]) {
-        URL.revokeObjectURL(newBlobs[videoId])
-        delete newBlobs[videoId]
+  const deleteVideo = async (videoId) => {
+    try {
+      console.log("[v0] Deleting video:", videoId)
+
+      const response = await fetch(`/api/videos/delete?id=${videoId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setSavedVideos((prev) => prev.filter((video) => video.id !== videoId))
+        setVideoBlobs((prev) => {
+          const newBlobs = { ...prev }
+          if (newBlobs[videoId]) {
+            URL.revokeObjectURL(newBlobs[videoId])
+            delete newBlobs[videoId]
+          }
+          return newBlobs
+        })
+        console.log("[v0] Video deleted successfully")
+      } else {
+        throw new Error("Failed to delete video")
       }
-      return newBlobs
-    })
+    } catch (error) {
+      console.error("[v0] Error deleting video:", error)
+      alert("Error al eliminar el video: " + error.message)
+    }
   }
 
   const handleCloseVideo = () => {
@@ -376,33 +391,65 @@ export default function TimeCapsule() {
         }
       }
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         console.log("[v0] Recording stopped, processing...")
         const endTime = Date.now()
         const actualDuration = Math.floor((endTime - startTime) / 1000)
         const durationText = `${Math.floor(actualDuration / 60)}:${(actualDuration % 60).toString().padStart(2, "0")}`
 
         const blob = new Blob(chunks, { type: mimeType })
-        const videoUrl = URL.createObjectURL(blob)
+        console.log("[v0] Created blob size:", blob.size, "bytes")
 
-        console.log("[v0] Created video URL:", videoUrl)
-        console.log("[v0] Blob size:", blob.size, "bytes")
-        console.log("[v0] Blob type:", blob.type)
+        try {
+          const formData = new FormData()
+          formData.append("video", blob, `video-${Date.now()}.webm`)
+          formData.append("year", new Date().getFullYear().toString())
+          formData.append("duration", actualDuration.toString())
+          formData.append("videoType", "annual")
 
-        const newVideo = {
-          id: Date.now(),
-          year: new Date().getFullYear(),
-          duration: durationText,
-          recorded: true,
-          url: videoUrl,
-          blob: blob,
-          mimeType: mimeType,
+          console.log("[v0] Uploading video to Blob storage...")
+          const uploadResponse = await fetch("/api/videos/upload", {
+            method: "POST",
+            body: formData,
+          })
+
+          if (!uploadResponse.ok) {
+            throw new Error("Failed to upload video")
+          }
+
+          const uploadResult = await uploadResponse.json()
+          console.log("[v0] Video uploaded successfully:", uploadResult)
+
+          const newVideo = {
+            id: uploadResult.id,
+            year: new Date().getFullYear(),
+            duration: durationText,
+            recorded: true,
+            url: uploadResult.url,
+            blob_url: uploadResult.url,
+          }
+
+          setSavedVideos((prev) => [...prev, newVideo])
+          setRecordedVideo(uploadResult.url)
+        } catch (error) {
+          console.error("[v0] Error uploading video:", error)
+          alert("Error al guardar el video: " + error.message)
+
+          const videoUrl = URL.createObjectURL(blob)
+          const newVideo = {
+            id: Date.now(),
+            year: new Date().getFullYear(),
+            duration: durationText,
+            recorded: true,
+            url: videoUrl,
+            blob: blob,
+            mimeType: mimeType,
+          }
+          setSavedVideos((prev) => [...prev, newVideo])
+          setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
+          setRecordedVideo(videoUrl)
         }
 
-        console.log("[v0] Video saved with duration:", durationText)
-        setSavedVideos((prev) => [...prev, newVideo])
-        setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
-        setRecordedVideo(videoUrl)
         setIsRecording(false)
         setRecordingTime(0)
 
@@ -411,22 +458,13 @@ export default function TimeCapsule() {
         setStream(null)
       }
 
-      recorder.start(100) // Record in 100ms chunks for better data capture
+      recorder.start(100)
       setMediaRecorder(recorder)
       setIsRecording(true)
 
-      // Timer for recording duration
       const timer = setInterval(() => {
         setRecordingTime((prev) => prev + 1)
       }, 1000)
-
-      // Auto-stop after 60 seconds
-      setTimeout(() => {
-        if (recorder.state === "recording") {
-          recorder.stop()
-          clearInterval(timer)
-        }
-      }, 60000)
 
       recorder.timer = timer
     } catch (error) {
@@ -434,6 +472,26 @@ export default function TimeCapsule() {
       alert("Error al acceder a la cámara: " + error.message)
     }
   }
+
+  useEffect(() => {
+    const loadVideos = async () => {
+      try {
+        console.log("[v0] Loading videos from storage...")
+        const response = await fetch("/api/videos/list")
+        if (response.ok) {
+          const videos = await response.json()
+          console.log("[v0] Loaded videos:", videos)
+          setSavedVideos(videos)
+        }
+      } catch (error) {
+        console.error("[v0] Error loading videos:", error)
+      }
+    }
+
+    if (user) {
+      loadVideos()
+    }
+  }, [user])
 
   const stopRecording = () => {
     console.log("[v0] Stopping recording manually...")
