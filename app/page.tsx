@@ -70,10 +70,9 @@ export default function TimeCapsule() {
         return
       }
 
-      console.log("[v0] User authenticated:", session.user.email)
+      console.log("[v0] Session found, checking user setup...")
       setUser(session.user)
 
-      // Check if user has completed setup
       const { data: profile } = await supabase
         .from("profiles")
         .select("annual_reminder_date")
@@ -83,9 +82,13 @@ export default function TimeCapsule() {
       if (profile?.annual_reminder_date) {
         console.log("[v0] User setup complete, going to dashboard")
         setSetupComplete(true)
+        setShowIntro(false)
+        setShowCalendar(false)
       } else {
         console.log("[v0] User needs setup, showing intro")
         setShowIntro(true)
+        setShowCalendar(false)
+        setSetupComplete(false)
       }
 
       setLoading(false)
@@ -146,6 +149,7 @@ export default function TimeCapsule() {
     if (!reminderDate || !user) return
 
     try {
+      console.log("[v0] Saving reminder date:", reminderDate)
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         annual_reminder_date: reminderDate,
@@ -157,8 +161,9 @@ export default function TimeCapsule() {
         return
       }
 
-      console.log("[v0] Reminder date saved successfully")
+      console.log("[v0] Reminder date saved successfully, going to dashboard")
       setShowCalendar(false)
+      setShowIntro(false)
       setSetupComplete(true)
     } catch (error) {
       console.error("Error configuring reminder:", error)
@@ -1065,17 +1070,20 @@ export default function TimeCapsule() {
       </div>
     )
   }
-  playingVideo && (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-4 max-w-2xl w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Reproduciendo Video</h3>
-          <Button variant="outline" size="sm" onClick={handleCloseVideo}>
-            ×
-          </Button>
+
+  if (playingVideo) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-4 max-w-2xl w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Reproduciendo Video</h3>
+            <Button variant="outline" size="sm" onClick={handleCloseVideo}>
+              ×
+            </Button>
+          </div>
+          <video src={playingVideo} controls className="w-full rounded" autoPlay />
         </div>
-        <video src={playingVideo} controls className="w-full rounded" autoPlay />
       </div>
-    </div>
-  )
+    )
+  }
 }
