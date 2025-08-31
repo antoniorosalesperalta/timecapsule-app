@@ -1,526 +1,1353 @@
 "use client"
 
-import { useState } from "react"
+import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import {
-  Calendar,
-  Video,
-  Heart,
-  Users,
-  QrCode,
-  Mail,
-  Clock,
-  Play,
-  Trash2,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect, useRef } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
-export default function LegacyVideoApp() {
-  const [showIntro, setShowIntro] = useState(true)
+const PadlockHeartIcon = ({ className = "w-6 h-6" }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2C9.79 2 8 3.79 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1V6c0-2.21-1.79-4-4-4zm0 2c1.1 0 2 .9 2 2v2h-4V6c0-1.1.9-2 2-2z" />
+    <path d="M12 13c-.55 0-1 .45-1 1v3c0 .55.45 1 1 1s1-.45 1-1v-3c0-.55-.45-1-1-1z" />
+    <path d="M12 8.5c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5zm0 3.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />
+    <path d="M9.5 6.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5z" fill="white" />
+  </svg>
+)
+
+export default function TimeCapsule() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [showIntro, setShowIntro] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [setupComplete, setSetupComplete] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [currentStep, setCurrentStep] = useState("welcome")
+  const [currentView, setCurrentView] = useState("loading")
   const [reminderDate, setReminderDate] = useState("")
+  const [familyContacts, setFamilyContacts] = useState([])
+  const [newContact, setNewContact] = useState({ name: "", email: "", relation: "", rut: "" })
+  const [editingContact, setEditingContact] = useState(null)
+  const [trustedContact, setTrustedContact] = useState({ email: "", name: "", saved: false })
+  const [personalizedFiles, setPersonalizedFiles] = useState({})
+  const [selectedContact, setSelectedContact] = useState(null)
+  const [showFileModal, setShowFileModal] = useState(false)
+  const [newFile, setNewFile] = useState({ title: "", type: "text", content: "", file: null })
   const [isRecording, setIsRecording] = useState(false)
-  const [recordedVideos, setRecordedVideos] = useState<any[]>([
-    { id: 1, year: 2023, title: "Mi reflexión de 2023", duration: "0:58", blob: null },
-    { id: 2, year: 2024, title: "Pensamientos de 2024", duration: "1:00", blob: null },
-  ])
-  const [viewingCompiled, setViewingCompiled] = useState(false)
-  const [trustedContacts, setTrustedContacts] = useState(["", "", ""])
-  const [savedContacts, setSavedContacts] = useState(false)
-  const [familyContacts, setFamilyContacts] = useState([
-    { id: 1, name: "María González", email: "maria@email.com", relation: "Hija" },
-    { id: 2, name: "Carlos González", email: "carlos@email.com", relation: "Hijo" },
-    { id: 3, name: "Ana López", email: "ana@email.com", relation: "Esposa" },
-  ])
-  const [lastCheckIn, setLastCheckIn] = useState("15 de Enero, 2025")
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
-  const [currentVideo, setCurrentVideo] = useState<any>(null)
+  const [recordedVideo, setRecordedVideo] = useState(null)
+  const [mediaRecorder, setMediaRecorder] = useState(null)
+  const [stream, setStream] = useState(null)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [playingVideo, setPlayingVideo] = useState(null)
+  const [videoBlobs, setVideoBlobs] = useState({})
+  const [lifeVideos, setLifeVideos] = useState([])
+  const [savedVideos, setSavedVideos] = useState([])
+  const [compiledVideoUrl, setCompiledVideoUrl] = useState(null)
+  const [editingFile, setEditingFile] = useState(null)
+  const [viewingFile, setViewingFile] = useState(null)
 
-  const introSlides = [
+  const router = useRouter()
+  const supabase = createClient()
+  const videoRef = useRef(null)
+  const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      console.log("[v0] Checking authentication...")
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session) {
+        console.log("[v0] No session found, redirecting to login")
+        router.push("/auth/login")
+        return
+      }
+
+      console.log("[v0] Session found, checking user setup...")
+      setUser(session.user)
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("annual_reminder_date")
+        .eq("id", session.user.id)
+        .single()
+
+      if (profile?.annual_reminder_date) {
+        console.log("[v0] User has setup but showing intro first")
+        setSetupComplete(true)
+        setShowIntro(true)
+        setShowCalendar(false)
+        setCurrentView("intro")
+      } else {
+        console.log("[v0] New user, starting with introduction")
+        setSetupComplete(false)
+        setShowIntro(true)
+        setShowCalendar(false)
+        setCurrentView("intro")
+      }
+
+      setLoading(false)
+    }
+
+    checkAuth()
+  }, [router, supabase])
+
+  const carouselImages = [
     {
-      title: "Un Regalo Para Tus Seres Queridos",
-      description: "Crea una cápsula del tiempo digital que perdurará para siempre. Cada año, dedica un minuto a compartir tus pensamientos, experiencias y amor.",
-      icon: "💝",
-      color: "linear-gradient(135deg, #ec4899 0%, #e11d48 100%)"
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1-EHpdxWsvTwc6tv25ayfyZ2e2Ij5F9E.png",
+      title: "Conexiones que Perduran",
+      description: "TimeCapsule te permite crear un legado digital único para tus seres queridos.",
     },
     {
-      title: "Tu Crecimiento a Través del Tiempo",
-      description: "Imagina a tus hijos viendo tu evolución desde los 8 hasta los 53 años. Un minuto por año que cuenta la historia de tu vida y sabiduría.",
-      icon: "⏰",
-      color: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
-    },
-    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2-pLtyTLGv0NlQjOK3KwmKTI6Tmmypkk.png",
       title: "Memorias que Inspiran",
-      description: "Comparte momentos de alegría, lecciones aprendidas y palabras de amor. Deja un legado positivo que inspire a las futuras generaciones.",
-      icon: "🌟",
-      color: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)"
+      description: "Cada año, graba un video especial que capture tu crecimiento y sabiduría.",
     },
     {
-      title: "Un Tesoro Familiar",
-      description: "Tus videos se compilarán en un hermoso recuerdo que tus familiares atesorarán para siempre. Una ventana a tu corazón y tu historia.",
-      icon: "💎",
-      color: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)"
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_42_35%20p.m.-JfPLBdDkKSfIzqcyU6e7E0eGGMwdx1.png",
+      title: "Momentos Preciosos",
+      description: "Documenta tu evolución personal y los momentos más significativos de tu vida.",
     },
     {
-      title: "Tu Legado Digital",
-      description: "Cuando llegue el momento, tus seres queridos recibirán este regalo especial. Un recordatorio eterno de tu amor y las lecciones que compartiste.",
-      icon: "🕊️",
-      color: "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_46_42%20p.m.-8nEBJCuaaZ3BZ2v8SlDDTLMuXYNxbm.png",
+      title: "Legado Eterno",
+      description: "Tu familia podrá acceder a tus recuerdos a través de un código QR especial.",
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_53_36%20p.m.-pIAP8nAyGlQCxB4MYuDCpE5Ie6pVPD.png",
+      title: "Conexión Infinita",
+      description: "Mantén viva la conexión con tus seres queridos para las futuras generaciones.",
     },
   ]
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % introSlides.length)
+    if (currentSlide < carouselImages.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    } else {
+      console.log("[v0] Introduction completed, showing calendar")
+      if (setupComplete) {
+        setShowIntro(false)
+        setShowCalendar(false)
+        setCurrentView("dashboard")
+      } else {
+        setShowIntro(false)
+        setShowCalendar(true)
+        setCurrentView("calendar")
+      }
+    }
   }
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + introSlides.length) % introSlides.length)
+  const skipIntro = () => {
+    console.log("[v0] Introduction skipped")
+    if (setupComplete) {
+      setShowIntro(false)
+      setShowCalendar(false)
+      setCurrentView("dashboard")
+    } else {
+      setShowIntro(false)
+      setShowCalendar(true)
+      setCurrentView("calendar")
+    }
   }
 
-  const canRecordThisYear = () => {
-    const currentYear = new Date().getFullYear()
-    return !recordedVideos.some((video) => video.year === currentYear)
+  const getMinDate = () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split("T")[0]
   }
 
-  const getCurrentYear = () => new Date().getFullYear()
-
-  const handleStartRecording = async () => {
-    if (!canRecordThisYear()) return
+  const configureReminder = async () => {
+    if (!reminderDate || !user) return
 
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      setStream(mediaStream)
-      
-      const recorder = new MediaRecorder(mediaStream)
-      const chunks: Blob[] = []
-      
-      recorder.ondataavailable = (event) => {
-        chunks.push(event.data)
+      console.log("[v0] Saving reminder date:", reminderDate)
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        annual_reminder_date: reminderDate,
+        updated_at: new Date().toISOString(),
+      })
+
+      if (error) {
+        console.error("Error saving reminder date:", error)
+        return
       }
-      
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' })
-        const newVideo = {
-          id: Date.now(),
-          year: getCurrentYear(),
-          title: `Mi video de ${getCurrentYear()}`,
-          duration: "1:00",
-          blob: blob
-        }
-        setRecordedVideos([...recordedVideos, newVideo])
-        setCurrentVideo(newVideo)
-        setCurrentStep("library")
-      }
-      
-      setMediaRecorder(recorder)
-      recorder.start()
-      setIsRecording(true)
-      
-      setTimeout(() => {
-        if (recorder.state === 'recording') {
-          recorder.stop()
-          mediaStream.getTracks().forEach(track => track.stop())
-          setIsRecording(false)
-          setStream(null)
-          setMediaRecorder(null)
-        }
-      }, 60000)
-      
+
+      console.log("[v0] Reminder date saved successfully, going to dashboard")
+      setShowCalendar(false)
+      setShowIntro(false)
+      setSetupComplete(true)
+      setCurrentView("dashboard")
     } catch (error) {
-      console.error('Error accessing camera:', error)
-      alert('No se pudo acceder a la cámara. Por favor, permite el acceso a la cámara y micrófono.')
+      console.error("Error configuring reminder:", error)
     }
   }
 
-  const handleStopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop()
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop())
+  const handleAddContact = () => {
+    if (!newContact.name || !newContact.email || !newContact.rut || !newContact.relation) return
+
+    const contact = {
+      id: Date.now(),
+      ...newContact,
+    }
+
+    setFamilyContacts([...familyContacts, contact])
+    setNewContact({ name: "", email: "", relation: "", rut: "" })
+  }
+
+  const handleEditContact = (contact) => {
+    setEditingContact(contact)
+    setNewContact(contact)
+  }
+
+  const handleUpdateContact = () => {
+    if (!editingContact) return
+
+    setFamilyContacts(
+      familyContacts.map((contact) =>
+        contact.id === editingContact.id ? { ...editingContact, ...newContact } : contact,
+      ),
+    )
+    setEditingContact(null)
+    setNewContact({ name: "", email: "", relation: "", rut: "" })
+  }
+
+  const handleDeleteContact = (contactId) => {
+    setFamilyContacts(familyContacts.filter((contact) => contact.id !== contactId))
+  }
+
+  const handleViewFiles = (contact) => {
+    setSelectedContact(contact)
+    setViewingFile({ contact, files: personalizedFiles[contact.id] || [] })
+  }
+
+  const handleAddFile = (contact) => {
+    setSelectedContact(contact)
+    setNewFile({ title: "", type: "text", content: "", file: null })
+    setEditingFile(null)
+    setShowFileModal(true)
+  }
+
+  const handleEditFile = (contact, file) => {
+    setSelectedContact(contact)
+    setNewFile(file)
+    setEditingFile(file)
+    setShowFileModal(true)
+  }
+
+  const handleDeleteFile = (contactId, fileId) => {
+    const updatedFiles = personalizedFiles[contactId]?.filter((file) => file.id !== fileId) || []
+    setPersonalizedFiles({
+      ...personalizedFiles,
+      [contactId]: updatedFiles,
+    })
+  }
+
+  const saveFile = () => {
+    if (!selectedContact || !newFile.title) return
+
+    const file = {
+      id: editingFile?.id || Date.now(),
+      title: newFile.title,
+      type: newFile.type,
+      content: newFile.content,
+      file: newFile.file,
+      createdAt: editingFile?.createdAt || new Date().toISOString(),
+    }
+
+    const contactFiles = personalizedFiles[selectedContact.id] || []
+    const updatedFiles = editingFile
+      ? contactFiles.map((f) => (f.id === editingFile.id ? file : f))
+      : [...contactFiles, file]
+
+    setPersonalizedFiles({
+      ...personalizedFiles,
+      [selectedContact.id]: updatedFiles,
+    })
+
+    setShowFileModal(false)
+    setNewFile({ title: "", type: "text", content: "", file: null })
+    setEditingFile(null)
+  }
+
+  const playVideo = (videoUrl) => {
+    console.log("[v0] Playing video:", videoUrl)
+    if (!videoUrl) {
+      console.error("[v0] No video URL provided")
+      alert("Video no disponible")
+      return
+    }
+
+    let finalVideoUrl = null
+
+    if (typeof videoUrl === "string" && videoUrl.startsWith("blob:")) {
+      finalVideoUrl = videoUrl
+    } else if (videoUrl instanceof Blob) {
+      finalVideoUrl = URL.createObjectURL(videoUrl)
+    } else if (typeof videoUrl === "string" && videoUrl.startsWith("http")) {
+      finalVideoUrl = videoUrl
+    } else {
+      console.error("[v0] Invalid video URL format:", videoUrl)
+      alert("Formato de video no válido")
+      return
+    }
+
+    console.log("[v0] Final video URL for playback:", finalVideoUrl)
+    setPlayingVideo(finalVideoUrl)
+  }
+
+  const playCompiledVideo = () => {
+    console.log("[v0] Playing compiled video...")
+    console.log("[v0] Saved videos:", savedVideos)
+    console.log("[v0] Video blobs:", videoBlobs)
+
+    if (savedVideos.length > 0) {
+      const firstVideo = savedVideos[0]
+      const videoUrl = firstVideo.url || videoBlobs[firstVideo.id]
+      console.log("[v0] First video URL:", videoUrl)
+
+      if (videoUrl) {
+        playVideo(videoUrl)
+      } else {
+        alert("Video no disponible para reproducir")
       }
-      setIsRecording(false)
+    } else {
+      alert("No hay videos grabados para compilar")
+    }
+  }
+
+  const deleteVideo = async (videoId) => {
+    try {
+      console.log("[v0] Deleting video:", videoId)
+
+      const response = await fetch(`/api/videos/delete?id=${videoId}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        setSavedVideos((prev) => prev.filter((video) => video.id !== videoId))
+        setVideoBlobs((prev) => {
+          const newBlobs = { ...prev }
+          if (newBlobs[videoId]) {
+            URL.revokeObjectURL(newBlobs[videoId])
+            delete newBlobs[videoId]
+          }
+          return newBlobs
+        })
+        console.log("[v0] Video deleted successfully")
+      } else {
+        throw new Error("Failed to delete video")
+      }
+    } catch (error) {
+      console.error("[v0] Error deleting video:", error)
+      alert("Error al eliminar el video: " + error.message)
+    }
+  }
+
+  const handleCloseVideo = () => {
+    setPlayingVideo(null)
+  }
+
+  const saveTrustedContact = () => {
+    if (!trustedContact.name || !trustedContact.email) return
+    setTrustedContact({ ...trustedContact, saved: true })
+  }
+
+  const startRecording = async () => {
+    try {
+      console.log("[v0] Starting video recording...")
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      })
+
+      setStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+
+      let mimeType = "video/webm"
+      if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+        mimeType = "video/webm;codecs=vp9"
+      } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+        mimeType = "video/webm;codecs=vp8"
+      } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+        mimeType = "video/mp4"
+      }
+
+      console.log("[v0] Using MIME type:", mimeType)
+
+      const recorder = new MediaRecorder(mediaStream, { mimeType })
+      const chunks = []
+      const startTime = Date.now()
+
+      recorder.ondataavailable = (event) => {
+        console.log("[v0] Recording data available:", event.data.size)
+        if (event.data.size > 0) {
+          chunks.push(event.data)
+        }
+      }
+
+      recorder.onstop = async () => {
+        console.log("[v0] Recording stopped, processing...")
+        const endTime = Date.now()
+        const actualDuration = Math.floor((endTime - startTime) / 1000)
+        const durationText = `${Math.floor(actualDuration / 60)}:${(actualDuration % 60).toString().padStart(2, "0")}`
+
+        const blob = new Blob(chunks, { type: mimeType })
+        console.log("[v0] Created blob size:", blob.size, "bytes")
+
+        try {
+          console.log("[v0] Creating FormData for upload...")
+          const formData = new FormData()
+          formData.append("file", blob, `video-${Date.now()}.webm`)
+          formData.append("year", new Date().getFullYear().toString())
+          formData.append("duration", actualDuration.toString())
+          formData.append("videoType", "annual")
+
+          console.log("[v0] FormData created, blob size:", blob.size)
+          console.log("[v0] Uploading video to Blob storage...")
+
+          const uploadResponse = await fetch("/api/videos/upload", {
+            method: "POST",
+            body: formData,
+          })
+
+          console.log("[v0] Upload response status:", uploadResponse.status)
+
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text()
+            console.error("[v0] Upload failed with status:", uploadResponse.status, "Error:", errorText)
+            throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`)
+          }
+
+          const uploadResult = await uploadResponse.json()
+          console.log("[v0] Video uploaded successfully:", uploadResult)
+
+          const newVideo = {
+            id: Date.now(),
+            year: uploadResult.year,
+            duration: durationText,
+            recorded: true,
+            url: uploadResult.url,
+            blob_url: uploadResult.url,
+          }
+
+          setSavedVideos((prev) => [...prev, newVideo])
+          setRecordedVideo(uploadResult.url)
+        } catch (error) {
+          console.error("[v0] Error uploading video:", error)
+          alert("Error al guardar el video: " + error.message)
+
+          const videoUrl = URL.createObjectURL(blob)
+          const newVideo = {
+            id: Date.now(),
+            year: new Date().getFullYear(),
+            duration: durationText,
+            recorded: true,
+            url: videoUrl,
+            blob: blob,
+            mimeType: mimeType,
+          }
+          setSavedVideos((prev) => [...prev, newVideo])
+          setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
+          setRecordedVideo(videoUrl)
+        }
+
+        setIsRecording(false)
+        setRecordingTime(0)
+
+        // Clean up stream
+        mediaStream.getTracks().forEach((track) => track.stop())
+        setStream(null)
+      }
+
+      recorder.start(100)
+      setMediaRecorder(recorder)
+      setIsRecording(true)
+
+      const timer = setInterval(() => {
+        setRecordingTime((prev) => prev + 1)
+      }, 1000)
+
+      recorder.timer = timer
+    } catch (error) {
+      console.error("[v0] Error starting recording:", error)
+      alert("Error al acceder a la cámara: " + error.message)
+    }
+  }
+
+  useEffect(() => {
+    const loadVideos = async () => {
+      try {
+        console.log("[v0] Loading videos from storage...")
+        const response = await fetch("/api/videos/list")
+        if (response.ok) {
+          const videos = await response.json()
+          console.log("[v0] Loaded videos:", videos)
+          setSavedVideos(videos)
+        }
+      } catch (error) {
+        console.error("[v0] Error loading videos:", error)
+      }
+    }
+
+    if (user) {
+      loadVideos()
+    }
+  }, [user])
+
+  const stopRecording = () => {
+    console.log("[v0] Stopping recording manually...")
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop()
+      if (mediaRecorder.timer) {
+        clearInterval(mediaRecorder.timer)
+      }
+    }
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop())
       setStream(null)
-      setMediaRecorder(null)
     }
+    setRecordingTime(0)
   }
 
-  const handlePlayVideo = (video: any) => {
-    if (video.blob) {
-      const url = URL.createObjectURL(video.blob)
-      setCurrentVideo({ ...video, url })
-    } else {
-      setCurrentVideo({ ...video, url: '/sample-video.mp4' })
-    }
-  }
-
-  const handleSaveContacts = () => {
-    const validContacts = trustedContacts.filter(email => email.trim() !== '')
-    if (validContacts.length > 0) {
-      setSavedContacts(true)
-      alert('Contactos guardados exitosamente')
-    } else {
-      alert('Por favor, ingresa al menos un email válido')
-    }
-  }
-
-  const handleDeleteVideo = (videoId: number) => {
-    setRecordedVideos(recordedVideos.filter((video) => video.id !== videoId))
-  }
-
-  const getTotalDuration = () => {
-    const totalSeconds = recordedVideos.reduce((acc, video) => {
-      const [minutes, seconds] = video.duration.split(":").map(Number)
-      return acc + minutes * 60 + seconds
-    }, 0)
-    const minutes = Math.floor(totalSeconds / 60)
-    const seconds = totalSeconds % 60
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#FFEFF4" }}>
+        <div className="text-center">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <PadlockHeartIcon className="w-10 h-10" style={{ color: "#A0043C" }} />
+          </div>
+          <p className="text-lg font-medium" style={{ color: "#000000" }}>
+            Cargando TimeCapsule...
+          </p>
+        </div>
+      </div>
+    )
   }
 
   if (showIntro) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem'
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '28rem',
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '1rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          border: 'none',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <div style={{ padding: '2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{
-                margin: '0 auto 1.5rem',
-                width: '6rem',
-                height: '6rem',
-                background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
-              }}>
-                <Heart style={{ width: '3rem', height: '3rem', color: 'white' }} />
-              </div>
-              <h1 style={{
-                fontSize: '2.5rem',
-                fontWeight: 'bold',
-                color: '#be185d',
-                marginBottom: '0.75rem',
-                margin: '0 0 0.75rem 0'
-              }}>TimeCapsule</h1>
-              <p style={{
-                color: '#be185d',
-                fontSize: '1.125rem',
-                margin: 0
-              }}>Tu legado digital para las futuras generaciones</p>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#FFEFF4" }}>
+        <Card className="w-full max-w-lg bg-white rounded-2xl shadow-xl border-gray-200">
+          <CardContent className="p-6">
+            <div className="aspect-[3/2] mb-4 rounded-xl overflow-hidden bg-gray-100">
+              <img
+                src={carouselImages[currentSlide].src || "/placeholder.svg"}
+                alt={carouselImages[currentSlide].title}
+                className="w-full h-full object-cover"
+              />
             </div>
-
-            <div style={{ position: 'relative' }}>
-              <div style={{ marginBottom: '2rem' }}>
-                <div style={{
-                  width: '100%',
-                  height: '12rem',
-                  background: introSlides[currentSlide].color,
-                  borderRadius: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1.5rem',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <div style={{ fontSize: '4rem' }}>{introSlides[currentSlide].icon}</div>
-                </div>
-
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                  <h2 style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#1f2937',
-                    marginBottom: '1rem',
-                    margin: '0 0 1rem 0'
-                  }}>
-                    {introSlides[currentSlide].title}
-                  </h2>
-                  <p style={{
-                    color: '#6b7280',
-                    fontSize: '1rem',
-                    lineHeight: '1.6',
-                    margin: 0
-                  }}>
-                    {introSlides[currentSlide].description}
-                  </p>
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '2rem'
-                }}>
-                  <button
-                    onClick={prevSlide}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#be185d',
-                      cursor: 'pointer',
-                      borderRadius: '50%',
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.background = '#fdf2f8'
-                      e.currentTarget.style.color = '#be185d'
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                      e.currentTarget.style.color = '#be185d'
-                    }}
-                  >
-                    <ChevronLeft style={{ width: '1.25rem', height: '1.25rem' }} />
-                  </button>
-
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    {introSlides.map((_, index) => (
-                      <div
-                        key={index}
-                        style={{
-                          width: '0.75rem',
-                          height: '0.75rem',
-                          borderRadius: '50%',
-                          transition: 'all 0.3s',
-                          background: index === currentSlide ? '#ec4899' : '#e5e7eb',
-                          transform: index === currentSlide ? 'scale(1.25)' : 'scale(1)'
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={nextSlide}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#be185d',
-                      cursor: 'pointer',
-                      borderRadius: '50%',
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.background = '#fdf2f8'
-                      e.currentTarget.style.color = '#be185d'
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                      e.currentTarget.style.color = '#be185d'
-                    }}
-                  >
-                    <ChevronRight style={{ width: '1.25rem', height: '1.25rem' }} />
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {currentSlide === introSlides.length - 1 ? (
-                    <button
-                      onClick={() => setShowIntro(false)}
-                      style={{
-                        width: '100%',
-                        background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-                        color: 'white',
-                        fontSize: '1.125rem',
-                        fontWeight: '600',
-                        padding: '1rem',
-                        borderRadius: '0.75rem',
-                        border: 'none',
-                        cursor: 'pointer',
-                        boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)',
-                        transition: 'all 0.2s',
-                        transform: 'scale(1)'
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.05)'
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)'
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
-                      }}
-                    >
-                      Comenzar Mi TimeCapsule
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowIntro(false)}
-                      style={{
-                        width: '100%',
-                        background: 'transparent',
-                        border: '2px solid #fbcfe8',
-                        color: '#be185d',
-                        fontSize: '1.125rem',
-                        fontWeight: '500',
-                        padding: '1rem',
-                        borderRadius: '0.75rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.background = '#fdf2f8'
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.background = 'transparent'
-                      }}
-                    >
-                      Saltar Introducción
-                    </button>
-                  )}
-                </div>
-              </div>
+            <h2 className="text-2xl font-bold text-center mb-2 text-balance" style={{ color: "#000000" }}>
+              {carouselImages[currentSlide].title}
+            </h2>
+            <p className="text-center mb-6 text-pretty" style={{ color: "#666666" }}>
+              {carouselImages[currentSlide].description}
+            </p>
+            <div className="flex justify-center mb-6">
+              {carouselImages.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full mx-1`}
+                  style={{ backgroundColor: index === currentSlide ? "#A0043C" : "#CCCCCC" }}
+                />
+              ))}
             </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={skipIntro}
+                className="flex-1 bg-white border-gray-300 text-black rounded-xl hover:shadow-md"
+              >
+                Saltar
+              </Button>
+              <Button
+                onClick={nextSlide}
+                className="flex-1 rounded-xl text-white hover:shadow-lg"
+                style={{ backgroundColor: "#A0043C" }}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (showCalendar && !setupComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#FFEFF4" }}>
+        <Card className="w-full max-w-md bg-white rounded-2xl shadow-xl border-gray-200">
+          <CardContent className="p-6 text-center">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <PadlockHeartIcon className="w-10 h-10" style={{ color: "#A0043C" }} />
+            </div>
+            <h1 className="text-2xl font-bold mb-2" style={{ color: "#000000" }}>
+              ¡Bienvenido a TimeCapsule!
+            </h1>
+            <p className="mb-6" style={{ color: "#666666" }}>
+              Configura tu primer recordatorio para comenzar tu legado digital
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="reminderDate" className="text-left block mb-2 font-medium" style={{ color: "#000000" }}>
+                  ¿Cuándo quieres grabar tu primer video?
+                </Label>
+                <Input
+                  id="reminderDate"
+                  type="date"
+                  value={reminderDate}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                  className="bg-white border-gray-300 rounded-xl text-black"
+                />
+              </div>
+
+              <Button
+                onClick={configureReminder}
+                className="w-full rounded-xl text-white font-semibold py-3 hover:shadow-lg"
+                style={{ backgroundColor: "#A0043C" }}
+              >
+                Configurar Recordatorio
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (currentView === "dashboard") {
+    return (
+      <div className="min-h-screen p-4" style={{ backgroundColor: "#FFEFF4" }}>
+        <div className="max-w-4xl mx-auto">
+          <header className="text-center mb-8">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <PadlockHeartIcon className="w-10 h-10" style={{ color: "#A0043C" }} />
+            </div>
+            <h1 className="text-4xl font-bold mb-2" style={{ color: "#000000" }}>
+              TimeCapsule
+            </h1>
+            <p style={{ color: "#666666" }}>Tu legado digital para las futuras generaciones</p>
+          </header>
+
+          <div className="grid gap-6 md:grid-cols-2 mb-8">
+            <Card
+              className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-white rounded-2xl border-gray-200 hover:-translate-y-1"
+              onClick={() => setCurrentView("videos")}
+            >
+              <CardHeader>
+                <div className="w-12 h-12 bg-blue-pastel rounded-xl flex items-center justify-center mb-2">
+                  <Video className="w-6 h-6 icon-blue-pastel" />
+                </div>
+                <CardTitle className="text-lg min-w-0 font-bold" style={{ color: "#000000" }}>
+                  Tu Video de Vida
+                </CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty" style={{ color: "#666666" }}>
+                  Graba y gestiona tus videos anuales
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-white rounded-2xl border-gray-200 hover:-translate-y-1"
+              onClick={() => setCurrentView("personalized")}
+            >
+              <CardHeader>
+                <div className="w-12 h-12 bg-purple-pastel rounded-xl flex items-center justify-center mb-2">
+                  <FileText className="w-6 h-6 icon-purple-pastel" />
+                </div>
+                <CardTitle className="text-lg min-w-0 font-bold" style={{ color: "#000000" }}>
+                  Información Personalizada
+                </CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty" style={{ color: "#666666" }}>
+                  Contenido especial para cada contacto
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-white rounded-2xl border-gray-200 hover:-translate-y-1"
+              onClick={() => setCurrentView("contacts")}
+            >
+              <CardHeader>
+                <div className="w-12 h-12 bg-green-pastel rounded-xl flex items-center justify-center mb-2">
+                  <Users className="w-6 h-6 icon-green-pastel" />
+                </div>
+                <CardTitle className="text-lg min-w-0 font-bold" style={{ color: "#000000" }}>
+                  Contactos
+                </CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty" style={{ color: "#666666" }}>
+                  Gestiona tu lista de seres queridos
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-xl transition-all duration-300 bg-white rounded-2xl border-gray-200 hover:-translate-y-1"
+              onClick={() => setCurrentView("legacy")}
+            >
+              <CardHeader>
+                <div className="w-12 h-12 bg-orange-pastel rounded-xl flex items-center justify-center mb-2">
+                  <PadlockHeartIcon className="w-6 h-6 icon-orange-pastel" />
+                </div>
+                <CardTitle className="text-lg min-w-0 font-bold" style={{ color: "#000000" }}>
+                  Sistema de Legado
+                </CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty" style={{ color: "#666666" }}>
+                  Configura tu legado digital
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
+          <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await supabase.auth.signOut()
+                router.push("/auth/login")
+              }}
+              className="bg-white border-gray-300 text-black rounded-xl hover:shadow-md"
+            >
+              Cerrar Sesión
+            </Button>
           </div>
         </div>
       </div>
     )
   }
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #f3e8ff 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '1rem'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '28rem',
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '1rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        border: 'none',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
-          <div style={{
-            margin: '0 auto 1.5rem',
-            width: '5rem',
-            height: '5rem',
-            background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)'
-          }}>
-            <Heart style={{ width: '2.5rem', height: '2.5rem', color: 'white' }} />
-          </div>
-          <h1 style={{
-            fontSize: '1.875rem',
-            fontWeight: 'bold',
-            color: '#be185d',
-            marginBottom: '0.75rem',
-            margin: '0 0 0.75rem 0'
-          }}>Bienvenido a TimeCapsule</h1>
-          <p style={{
-            color: '#be185d',
-            fontSize: '1rem',
-            lineHeight: '1.6',
-            margin: '0 0 1.5rem 0'
-          }}>
-            Crea un legado hermoso que inspire a tus seres queridos por generaciones
-          </p>
+  if (currentView === "videos") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="w-6 h-6" />
+                Tu Video de Vida
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Video Completo de Vida</CardTitle>
+                  <CardDescription>Tu compilación completa de videos anuales</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {savedVideos.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Video className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-muted-foreground">No hay videos grabados aún</p>
+                      <p className="text-sm text-muted-foreground">Graba tu primer video para ver la compilación</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Video Compilado Final</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {savedVideos.length} video{savedVideos.length !== 1 ? "s" : ""} • Duración total estimada:{" "}
+                            {savedVideos.length}:00
+                          </p>
+                        </div>
+                        <Button onClick={playCompiledVideo} disabled={savedVideos.length === 0}>
+                          <Play className="w-4 h-4 mr-2" />
+                          Reproducir Video Completo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <label style={{
-                color: '#be185d',
-                fontWeight: '500',
-                fontSize: '0.875rem'
-              }}>
-                ¿Cuándo quieres grabar tu primer video?
-              </label>
-              <input
-                type="date"
-                value={reminderDate}
-                onChange={(e) => setReminderDate(e.target.value)}
-                style={{
-                  width: '100%',
-                  border: '2px solid #fbcfe8',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#ec4899'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#fbcfe8'
-                }}
-              />
-            </div>
-            <button
-              onClick={() => setCurrentStep("dashboard")}
-              disabled={!reminderDate}
-              style={{
-                width: '100%',
-                background: reminderDate ? 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)' : '#e5e7eb',
-                color: 'white',
-                fontWeight: '600',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: reminderDate ? 'pointer' : 'not-allowed',
-                boxShadow: reminderDate ? '0 10px 25px -5px rgba(236, 72, 153, 0.4)' : 'none',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => {
-                if (reminderDate) {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
-                }
-              }}
-              onMouseOut={(e) => {
-                if (reminderDate) {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)'
-                }
-              }}
-            >
-              <Calendar style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', display: 'inline' }} />
-              Configurar Recordatorio
-            </button>
-          </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Videos Independientes de Vida</CardTitle>
+                  <CardDescription>Gestiona tus videos anuales individuales</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {savedVideos.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No hay videos grabados</p>
+                    </div>
+                  ) : (
+                    savedVideos.map((video) => (
+                      <div key={video.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Video {video.year}</h4>
+                          <p className="text-sm text-muted-foreground">Duración: {video.duration}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const videoUrl = video.url || videoBlobs[video.id]
+                              console.log("[v0] Video object:", video)
+                              console.log("[v0] Attempting to play video URL:", videoUrl)
+                              console.log("[v0] Available video blobs:", Object.keys(videoBlobs))
+                              if (videoUrl) {
+                                playVideo(videoUrl)
+                              } else {
+                                alert("Video no disponible")
+                              }
+                            }}
+                          >
+                            <Play className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => deleteVideo(video.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    {!isRecording && !stream ? (
+                      <div>
+                        <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                        <h3 className="text-lg font-medium mb-2">Grabar Nuevo Video</h3>
+                        <p className="text-muted-foreground mb-4">Graba tu video anual de hasta 1 minuto</p>
+                        <Button onClick={startRecording}>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Comenzar Grabación
+                        </Button>
+                      </div>
+                    ) : (
+                      <div>
+                        <video ref={videoRef} autoPlay muted className="w-full max-w-md mx-auto mb-4 rounded-lg" />
+                        <div className="flex items-center justify-center gap-4">
+                          <span className="text-lg font-mono">
+                            {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
+                          </span>
+                          <Button onClick={stopRecording} variant="destructive">
+                            <StopCircle className="w-4 h-4 mr-2" />
+                            Detener Grabación
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button onClick={() => setCurrentView("dashboard")} className="w-full mt-6">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver al Inicio
+              </Button>
+            </CardContent>
+          </Card>
         </div>
+      </div>
+    )
+  }
+
+  if (currentView === "contacts") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-6 h-6" />
+                Contactos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {editingContact ? "Editar Contacto" : "Agregar Nuevo Contacto"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name">Nombre</Label>
+                      <Input
+                        id="name"
+                        value={newContact.name}
+                        onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                        placeholder="Nombre completo"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={newContact.email}
+                        onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                        placeholder="correo@ejemplo.com"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="rut">RUT</Label>
+                      <Input
+                        id="rut"
+                        value={newContact.rut}
+                        onChange={(e) => setNewContact({ ...newContact, rut: e.target.value })}
+                        placeholder="12.345.678-9"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="relation">Relación</Label>
+                      <Select
+                        value={newContact.relation}
+                        onValueChange={(value) => setNewContact({ ...newContact, relation: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar relación" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="padre">Padre</SelectItem>
+                          <SelectItem value="madre">Madre</SelectItem>
+                          <SelectItem value="hermano">Hermano/a</SelectItem>
+                          <SelectItem value="hijo">Hijo/a</SelectItem>
+                          <SelectItem value="esposo">Esposo/a</SelectItem>
+                          <SelectItem value="amigo">Amigo/a</SelectItem>
+                          <SelectItem value="otro">Otro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button onClick={editingContact ? handleUpdateContact : handleAddContact} className="w-full">
+                    {editingContact ? "Actualizar Contacto" : "Agregar Contacto"}
+                  </Button>
+                  {editingContact && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingContact(null)
+                        setNewContact({ name: "", email: "", relation: "", rut: "" })
+                      }}
+                      className="w-full"
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Contactos Familiares</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {familyContacts.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      No hay contactos agregados. Agrega tu primer contacto familiar.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {familyContacts.map((contact) => (
+                        <div key={contact.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">{contact.name}</h4>
+                            <p className="text-sm text-muted-foreground">{contact.email}</p>
+                            <p className="text-sm text-muted-foreground">RUT: {contact.rut}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{contact.relation}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleEditContact(contact)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDeleteContact(contact.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Button onClick={() => setCurrentView("dashboard")} className="w-full mt-6">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver al Inicio
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  if (currentView === "personalized") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-6 h-6" />
+                Información Personalizada
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {familyContacts.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    Primero agrega contactos en la sección "Contactos" para poder gestionar información personalizada.
+                  </p>
+                  <Button onClick={() => setCurrentView("contacts")}>Ir a Contactos</Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {familyContacts.map((contact) => (
+                    <Card key={contact.id}>
+                      <CardHeader>
+                        <CardTitle className="text-lg">{contact.name}</CardTitle>
+                        <CardDescription>
+                          {contact.relation} - {personalizedFiles[contact.id]?.length || 0} archivos
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button size="sm" variant="outline" onClick={() => handleViewFiles(contact)}>
+                            Ver Archivos
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleAddFile(contact)}>
+                            <Plus className="w-4 h-4 mr-1" />
+                            Agregar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const files = personalizedFiles[contact.id]
+                              if (files && files.length > 0) {
+                                handleEditFile(contact, files[0])
+                              }
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              if (personalizedFiles[contact.id]?.length > 0) {
+                                const fileToDelete = personalizedFiles[contact.id][0]
+                                handleDeleteFile(contact.id, fileToDelete.id)
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Eliminar
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              <Button onClick={() => setCurrentView("dashboard")} className="w-full mt-6">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver al Inicio
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {showFileModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">{editingFile ? "Editar Archivo" : "Agregar Archivo"}</h3>
+                <Button variant="outline" size="sm" onClick={() => setShowFileModal(false)}>
+                  ×
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="fileTitle">Título</Label>
+                  <Input
+                    id="fileTitle"
+                    value={newFile.title}
+                    onChange={(e) => setNewFile({ ...newFile, title: e.target.value })}
+                    placeholder="Título del archivo"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="fileType">Tipo</Label>
+                  <Select value={newFile.type} onValueChange={(value) => setNewFile({ ...newFile, type: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Texto</SelectItem>
+                      <SelectItem value="image">Imagen</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                      <SelectItem value="audio">Audio</SelectItem>
+                      <SelectItem value="document">Documento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="fileUpload">Archivo</Label>
+                  <Input
+                    id="fileUpload"
+                    type="file"
+                    ref={fileInputRef}
+                    accept={
+                      newFile.type === "image"
+                        ? "image/*"
+                        : newFile.type === "video"
+                          ? "video/*"
+                          : newFile.type === "audio"
+                            ? "audio/*"
+                            : newFile.type === "document"
+                              ? ".pdf,.doc,.docx"
+                              : "*"
+                    }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setNewFile({ ...newFile, file })
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={saveFile} className="flex-1">
+                    {editingFile ? "Actualizar" : "Guardar"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowFileModal(false)} className="flex-1">
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {viewingFile && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Archivos de {viewingFile.contact.name}</h3>
+                <Button variant="outline" size="sm" onClick={() => setViewingFile(null)}>
+                  ×
+                </Button>
+              </div>
+
+              {viewingFile.files?.length > 0 ? (
+                <div className="space-y-4">
+                  {viewingFile.files.map((file) => (
+                    <div key={file.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">{file.title}</h4>
+                        <span className="text-xs text-muted-foreground capitalize">{file.type}</span>
+                      </div>
+
+                      {file.type === "image" && file.file && (
+                        <img
+                          src={URL.createObjectURL(file.file) || "/placeholder.svg"}
+                          alt={file.title}
+                          className="max-w-full h-auto rounded"
+                        />
+                      )}
+
+                      {file.type === "video" && file.file && (
+                        <video src={URL.createObjectURL(file.file)} controls className="max-w-full h-auto rounded" />
+                      )}
+
+                      {file.content && <p className="text-sm text-muted-foreground mt-2">{file.content}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No hay archivos para este contacto</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (currentView === "legacy") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PadlockHeartIcon className="w-6 h-6" />
+                Sistema de Legado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Contacto de Confianza</CardTitle>
+                  <CardDescription>Persona responsable de activar el envío de tu TimeCapsule</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {trustedContact.saved ? (
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <h4 className="font-medium text-green-800">Contacto de Confianza Guardado</h4>
+                      <p className="text-sm text-green-600">Nombre: {trustedContact.name}</p>
+                      <p className="text-sm text-green-600">Email: {trustedContact.email}</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2 bg-transparent"
+                        onClick={() => setTrustedContact({ ...trustedContact, saved: false })}
+                      >
+                        Editar
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <Label htmlFor="trustedName">Nombre</Label>
+                        <Input
+                          id="trustedName"
+                          value={trustedContact.name}
+                          onChange={(e) => setTrustedContact({ ...trustedContact, name: e.target.value })}
+                          placeholder="Nombre del contacto de confianza"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="trustedEmail">Email</Label>
+                        <Input
+                          id="trustedEmail"
+                          type="email"
+                          value={trustedContact.email}
+                          onChange={(e) => setTrustedContact({ ...trustedContact, email: e.target.value })}
+                          placeholder="correo@ejemplo.com"
+                        />
+                      </div>
+                      <Button className="w-full" onClick={saveTrustedContact}>
+                        Guardar Contacto de Confianza
+                      </Button>
+                    </>
+                  )}
+
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium mb-2">Responsabilidades del contacto de confianza:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Activar el envío del TimeCapsule cuando sea necesario</li>
+                      <li>• Verificar tu estado anualmente mediante check-in</li>
+                      <li>• Coordinar la entrega del legado digital a los familiares</li>
+                      <li>• Gestionar el código QR para la lápida si es solicitado</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Sistema de Verificación</CardTitle>
+                  <CardDescription>Verificación automática de estado cada año</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-green-800">Estado: Activo</h4>
+                        <p className="text-sm text-green-600">Último check-in: Hoy</p>
+                      </div>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Contenido del TimeCapsule</CardTitle>
+                  <CardDescription>Resumen de lo que se incluirá en tu legado digital</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span>Videos anuales</span>
+                      <span className="text-muted-foreground">{lifeVideos.length} videos</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Contactos familiares</span>
+                      <span className="text-muted-foreground">{familyContacts.length} contactos</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Información personalizada</span>
+                      <span className="text-muted-foreground">
+                        {Object.values(personalizedFiles).reduce((acc, files) => acc + (files?.length || 0), 0)}{" "}
+                        archivos
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Código QR para lápida</span>
+                      <span className="text-muted-foreground">Incluido</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Button onClick={() => setCurrentView("dashboard")} className="w-full mt-6">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver al Inicio
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+  playingVideo && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Reproducir Video</h3>
+          <Button variant="ghost" size="sm" onClick={handleCloseVideo}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <video
+          key={playingVideo} // Force re-render when URL changes
+          src={playingVideo}
+          controls
+          className="w-full rounded"
+          autoPlay
+          preload="metadata"
+          onError={(e) => {
+            console.error("[v0] Video playback error:", e)
+            console.error("[v0] Video URL:", playingVideo)
+            console.error("[v0] Video element error:", e.target.error)
+            const errorMessage = e.target.error?.message || "Archivo corrupto o formato no soportado"
+            alert(`Error al reproducir el video: ${errorMessage}`)
+          }}
+          onLoadStart={() => console.log("[v0] Video loading started")}
+          onLoadedMetadata={(e) => {
+            console.log("[v0] Video metadata loaded")
+            console.log("[v0] Video duration:", e.target.duration)
+            console.log("[v0] Video dimensions:", e.target.videoWidth, "x", e.target.videoHeight)
+            e.target.load()
+          }}
+          onCanPlay={() => {
+            console.log("[v0] Video can play")
+          }}
+          onPlay={() => console.log("[v0] Video started playing")}
+          onPause={() => console.log("[v0] Video paused")}
+          onEnded={() => console.log("[v0] Video ended")}
+        />
       </div>
     </div>
   )
