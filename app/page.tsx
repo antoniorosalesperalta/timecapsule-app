@@ -45,6 +45,8 @@ export default function TimeCapsule() {
     { id: 1, year: 2024, duration: "1:00", recorded: true },
     { id: 2, year: 2025, duration: "0:45", recorded: true },
   ])
+  const [savedVideos, setSavedVideos] = useState([])
+  const [compiledVideoUrl, setCompiledVideoUrl] = useState(null)
 
   const router = useRouter()
   const supabase = createClient()
@@ -155,12 +157,66 @@ export default function TimeCapsule() {
   const stopRecording = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop()
+
+      // Save the recorded video to our state
+      const newVideo = {
+        id: Date.now(),
+        year: new Date().getFullYear(),
+        duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, "0")}`,
+        recorded: true,
+        url: null, // Will be set in the onstop handler
+      }
+
+      // Update the mediaRecorder onstop handler to save the video
+      if (mediaRecorder) {
+        mediaRecorder.onstop = () => {
+          const chunks = []
+          const blob = new Blob(chunks, { type: "video/webm" })
+          const videoUrl = URL.createObjectURL(blob)
+
+          // Update the video with the URL
+          newVideo.url = videoUrl
+          setSavedVideos((prev) => [...prev, newVideo])
+          setRecordedVideo(videoUrl)
+          setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
+        }
+      }
     }
     if (stream) {
       stream.getTracks().forEach((track) => track.stop())
     }
     setIsRecording(false)
     setStream(null)
+  }
+
+  const playVideo = (videoUrl) => {
+    if (videoUrl) {
+      setPlayingVideo(videoUrl)
+    }
+  }
+
+  const playCompiledVideo = () => {
+    // Create a simple compiled video URL (in real app, this would compile all videos)
+    if (savedVideos.length > 0) {
+      setPlayingVideo(savedVideos[0].url || recordedVideo)
+    } else if (recordedVideo) {
+      setPlayingVideo(recordedVideo)
+    }
+  }
+
+  const deleteVideo = (videoId) => {
+    setSavedVideos((prev) => prev.filter((video) => video.id !== videoId))
+    setLifeVideos((prev) => prev.filter((video) => video.id !== videoId))
+  }
+
+  const saveTrustedContact = () => {
+    if (trustedContact.name && trustedContact.email) {
+      // In a real app, this would save to database
+      console.log("Saving trusted contact:", trustedContact)
+      alert("Contacto de confianza guardado exitosamente")
+    } else {
+      alert("Por favor completa todos los campos")
+    }
   }
 
   if (loading) {
@@ -290,7 +346,7 @@ export default function TimeCapsule() {
                   <CardDescription>Compilación de todos tus videos anuales (Duración total: 1:45)</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={playCompiledVideo}>
                     <Play className="w-4 h-4 mr-2" />
                     Reproducir Video Completo
                   </Button>
@@ -304,17 +360,21 @@ export default function TimeCapsule() {
                   <CardDescription>Gestiona tus videos anuales individuales</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {lifeVideos.map((video) => (
+                  {[...lifeVideos, ...savedVideos].map((video) => (
                     <div key={video.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <h4 className="font-medium">Video {video.year}</h4>
                         <p className="text-sm text-muted-foreground">Duración: {video.duration}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => playVideo(video.url || videoBlobs[video.id])}
+                        >
                           <Play className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => deleteVideo(video.id)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -358,6 +418,20 @@ export default function TimeCapsule() {
             </CardContent>
           </Card>
         </div>
+
+        {playingVideo && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Reproduciendo Video</h3>
+                <Button variant="outline" size="sm" onClick={handleCloseVideo}>
+                  ×
+                </Button>
+              </div>
+              <video src={playingVideo} controls autoPlay className="w-full rounded-lg" onEnded={handleCloseVideo} />
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -598,7 +672,9 @@ export default function TimeCapsule() {
                       placeholder="correo@ejemplo.com"
                     />
                   </div>
-                  <Button className="w-full">Guardar Contacto de Confianza</Button>
+                  <Button className="w-full" onClick={saveTrustedContact}>
+                    Guardar Contacto de Confianza
+                  </Button>
 
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-medium mb-2">Responsabilidades del contacto de confianza:</h4>
