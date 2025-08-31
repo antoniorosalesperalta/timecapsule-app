@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle } from "lucide-react"
+import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -49,6 +49,8 @@ export default function TimeCapsule() {
   ])
   const [savedVideos, setSavedVideos] = useState([])
   const [compiledVideoUrl, setCompiledVideoUrl] = useState(null)
+  const [editingFile, setEditingFile] = useState(null)
+  const [viewingFile, setViewingFile] = useState(null)
 
   const router = useRouter()
   const supabase = createClient()
@@ -246,16 +248,36 @@ export default function TimeCapsule() {
   const handleAddFile = (contact) => {
     setSelectedContact(contact)
     setNewFile({ title: "", type: "text", content: "", file: null })
+    setEditingFile(null)
+    setShowFileModal(true)
+  }
+
+  const handleEditFile = (contact, file) => {
+    setSelectedContact(contact)
+    setNewFile({ ...file })
+    setEditingFile(file)
     setShowFileModal(true)
   }
 
   const handleSaveFile = () => {
     if (selectedContact && newFile.title) {
       const contactFiles = personalizedFiles[selectedContact.id] || []
-      const updatedFiles = [...contactFiles, { ...newFile, id: Date.now() }]
+      let updatedFiles
+
+      if (editingFile) {
+        // Editing existing file
+        updatedFiles = contactFiles.map((file) =>
+          file.id === editingFile.id ? { ...newFile, id: editingFile.id } : file,
+        )
+      } else {
+        // Adding new file
+        updatedFiles = [...contactFiles, { ...newFile, id: Date.now() }]
+      }
+
       setPersonalizedFiles({ ...personalizedFiles, [selectedContact.id]: updatedFiles })
       setShowFileModal(false)
       setNewFile({ title: "", type: "text", content: "", file: null })
+      setEditingFile(null)
     }
   }
 
@@ -270,6 +292,10 @@ export default function TimeCapsule() {
     const contactFiles = personalizedFiles[contactId] || []
     const updatedFiles = contactFiles.filter((file) => file.id !== fileId)
     setPersonalizedFiles({ ...personalizedFiles, [contactId]: updatedFiles })
+  }
+
+  const handleViewFile = (file) => {
+    setViewingFile(file)
   }
 
   if (loading) {
@@ -781,7 +807,16 @@ export default function TimeCapsule() {
                             <Plus className="w-4 h-4 mr-1" />
                             Agregar
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleAddFile(contact)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const files = personalizedFiles[contact.id]
+                              if (files && files.length > 0) {
+                                handleEditFile(contact, files[0])
+                              }
+                            }}
+                          >
                             <Edit className="w-4 h-4 mr-1" />
                             Editar
                           </Button>
@@ -818,23 +853,40 @@ export default function TimeCapsule() {
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">
-                  {personalizedFiles[selectedContact?.id]?.length > 0
-                    ? "Archivos de " + selectedContact?.name
-                    : "Agregar Archivo"}
+                  {editingFile
+                    ? "Editar Archivo"
+                    : personalizedFiles[selectedContact?.id]?.length > 0
+                      ? "Archivos de " + selectedContact?.name
+                      : "Agregar Archivo"}
                 </h3>
                 <Button variant="outline" size="sm" onClick={() => setShowFileModal(false)}>
                   ×
                 </Button>
               </div>
 
-              {personalizedFiles[selectedContact?.id]?.length > 0 ? (
+              {!editingFile && personalizedFiles[selectedContact?.id]?.length > 0 ? (
                 <div className="space-y-2">
                   {personalizedFiles[selectedContact.id].map((file) => (
                     <div key={file.id} className="flex justify-between items-center p-2 border rounded">
-                      <span>{file.title}</span>
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteFile(selectedContact.id, file.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex-1">
+                        <span className="font-medium">{file.title}</span>
+                        <span className="text-sm text-muted-foreground ml-2">({file.type})</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="outline" onClick={() => handleViewFile(file)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleEditFile(selectedContact, file)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteFile(selectedContact.id, file.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -877,10 +929,52 @@ export default function TimeCapsule() {
                     )}
                   </div>
                   <Button onClick={handleSaveFile} className="w-full">
-                    Guardar Archivo
+                    {editingFile ? "Actualizar Archivo" : "Guardar Archivo"}
                   </Button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {viewingFile && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">{viewingFile.title}</h3>
+                <Button variant="outline" size="sm" onClick={() => setViewingFile(null)}>
+                  ×
+                </Button>
+              </div>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">Tipo: {viewingFile.type}</p>
+                {viewingFile.file && (
+                  <div>
+                    {viewingFile.type === "image" && (
+                      <img
+                        src={URL.createObjectURL(viewingFile.file) || "/placeholder.svg"}
+                        alt={viewingFile.title}
+                        className="max-w-full h-auto rounded"
+                      />
+                    )}
+                    {viewingFile.type === "video" && (
+                      <video
+                        src={URL.createObjectURL(viewingFile.file)}
+                        controls
+                        className="max-w-full h-auto rounded"
+                      />
+                    )}
+                    {(viewingFile.type === "document" || viewingFile.type === "text") && (
+                      <div className="p-4 bg-gray-50 rounded">
+                        <p className="text-sm">Archivo: {viewingFile.file.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Tamaño: {(viewingFile.file.size / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
