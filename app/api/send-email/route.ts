@@ -2,21 +2,29 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const { to, subject, videoUrl, qrCodeUrl } = await request.json()
+    const { to, subject, videoUrl, qrCodeUrl, html } = await request.json()
 
-    // Here you would integrate with an email service like Resend, SendGrid, etc.
-    // For now, we'll just log the email details
     console.log("Sending email:", {
       to,
       subject,
       videoUrl,
       qrCodeUrl,
+      html: html ? "HTML content provided" : "No HTML content",
     })
 
-    // In a real implementation, you would:
-    // 1. Generate QR code that links to the video
-    // 2. Send email with video attachment or link
-    // 3. Include QR code for tombstone use
+    if (html) {
+      // This is a reminder email with HTML content
+      console.log("Reminder email HTML:", html.substring(0, 100) + "...")
+    }
+
+    // In a real implementation, you would integrate with:
+    // - Resend: https://resend.com/docs
+    // - SendGrid: https://docs.sendgrid.com/
+    // - Nodemailer with SMTP
+    //
+    // Example with Resend:
+    // const resend = new Resend(process.env.RESEND_API_KEY)
+    // await resend.emails.send({ from, to, subject, html })
 
     return NextResponse.json({ success: true, message: "Email sent successfully" })
   } catch (error) {
