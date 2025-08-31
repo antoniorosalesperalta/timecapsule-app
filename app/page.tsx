@@ -114,12 +114,13 @@ export default function TimeCapsule() {
       if (profile) {
         setReminderDate(profile.annual_reminder_date || "")
         setIsConfigured(!!profile.annual_reminder_date)
-        setShowIntro(!profile.show_intro && !profile.annual_reminder_date)
+        setShowIntro(!profile.annual_reminder_date)
         if (profile.last_check_in) {
           setLastCheckIn(new Date(profile.last_check_in).toLocaleDateString("es-ES"))
         }
       } else {
         setShowIntro(true)
+        setIsConfigured(false)
       }
 
       // Load contacts
@@ -180,7 +181,7 @@ export default function TimeCapsule() {
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         annual_reminder_date: reminderDate,
-        show_intro: true,
+        show_intro: false,
         updated_at: new Date().toISOString(),
       })
 
@@ -190,8 +191,8 @@ export default function TimeCapsule() {
       }
 
       console.log("[v0] Reminder date saved successfully")
-      setShowIntro(true)
       setIsConfigured(true)
+      setShowIntro(true)
     } catch (error) {
       console.error("[v0] Error saving reminder date:", error)
     }
