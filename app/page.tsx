@@ -84,11 +84,13 @@ export default function TimeCapsule() {
         setSetupComplete(true)
         setShowIntro(false)
         setShowCalendar(false)
+        setCurrentView("dashboard")
       } else {
         console.log("[v0] User needs setup, showing intro")
         setShowIntro(true)
         setShowCalendar(false)
         setSetupComplete(false)
+        setCurrentView("intro")
       }
 
       setLoading(false)
@@ -165,6 +167,7 @@ export default function TimeCapsule() {
       setShowCalendar(false)
       setShowIntro(false)
       setSetupComplete(true)
+      setCurrentView("dashboard")
     } catch (error) {
       console.error("Error configuring reminder:", error)
     }
@@ -355,13 +358,13 @@ export default function TimeCapsule() {
           <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
           </div>
-          <p className="text-lg text-gray-600">Cargando TimeCapsule...</p>
+          <p className="text-lg text-muted-foreground">Cargando TimeCapsule...</p>
         </div>
       </div>
     )
   }
 
-  if (showIntro) {
+  if (currentView === "intro" && showIntro) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
@@ -399,7 +402,7 @@ export default function TimeCapsule() {
     )
   }
 
-  if (showCalendar) {
+  if (showCalendar && !setupComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
