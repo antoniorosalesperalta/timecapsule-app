@@ -2,7 +2,8 @@
   "buildCommand": "pnpm build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "pnpm install",
+"installCommand": "pnpm install --frozen-lockfile=false",
+
   "devCommand": "pnpm dev",
   "headers": [
     {
