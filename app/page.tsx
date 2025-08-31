@@ -78,11 +78,14 @@ export default function TimeCapsule() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      console.log("[v0] Starting auth check")
       try {
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession()
+
+        console.log("[v0] Session result:", { session: !!session, error })
 
         if (error) {
           console.error("Auth error:", error)
@@ -91,16 +94,20 @@ export default function TimeCapsule() {
         }
 
         if (!session) {
+          console.log("[v0] No session, redirecting to login")
           router.push("/auth/login")
           return
         }
 
+        console.log("[v0] Session found, setting user and loading data")
         setUser(session.user)
         await loadUserData(session.user.id)
+        console.log("[v0] Data loaded, setting loading to false")
       } catch (error) {
         console.error("Session check failed:", error)
         router.push("/auth/login")
       } finally {
+        console.log("[v0] Setting loading to false in finally block")
         setLoading(false)
       }
     }
@@ -110,6 +117,7 @@ export default function TimeCapsule() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[v0] Auth state change:", event, !!session)
       if (event === "SIGNED_OUT" || !session) {
         setUser(null)
         router.push("/auth/login")
@@ -138,45 +146,47 @@ export default function TimeCapsule() {
   }, [isRecording])
 
   const loadUserData = async (userId) => {
+    console.log("[v0] Loading user data for:", userId)
     try {
       // Load profile data
       try {
+        console.log("[v0] Loading profile...")
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", userId)
           .single()
 
-        if (profileError && profileError.code !== "PGRST116") {
-          // PGRST116 is "not found" error
-          console.error("Profile error:", profileError)
-        }
+        console.log("[v0] Profile result:", { profile: !!profile, error: profileError })
 
         if (profile) {
           setReminderDate(profile.annual_reminder_date || "")
           setIsConfigured(!!profile.annual_reminder_date)
-          setLastCheckIn(
-            new Date(profile.last_check_in).toLocaleDateString("es-ES", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }),
-          )
+          if (profile.last_check_in) {
+            setLastCheckIn(
+              new Date(profile.last_check_in).toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
+            )
+          }
         }
       } catch (error) {
-        console.error("Error loading profile:", error)
+        console.error("[v0] Error loading profile:", error)
       }
 
       // Load contacts
       try {
+        console.log("[v0] Loading contacts...")
         const { data: contacts, error: contactsError } = await supabase
           .from("contacts")
           .select("*")
           .eq("user_id", userId)
 
-        if (contactsError) {
-          console.error("Contacts error:", contactsError)
-        } else if (contacts) {
+        console.log("[v0] Contacts result:", { count: contacts?.length, error: contactsError })
+
+        if (contacts) {
           setFamilyContacts(
             contacts.map((contact) => ({
               id: contact.id,
@@ -188,75 +198,30 @@ export default function TimeCapsule() {
           )
         }
       } catch (error) {
-        console.error("Error loading contacts:", error)
+        console.error("[v0] Error loading contacts:", error)
       }
 
       // Load trusted contact
       try {
+        console.log("[v0] Loading trusted contact...")
         const { data: trustedContacts, error: trustedError } = await supabase
           .from("trusted_contacts")
           .select("*")
           .eq("user_id", userId)
           .single()
 
-        if (trustedError && trustedError.code !== "PGRST116") {
-          console.error("Trusted contact error:", trustedError)
-        } else if (trustedContacts) {
+        console.log("[v0] Trusted contact result:", { data: !!trustedContacts, error: trustedError })
+
+        if (trustedContacts) {
           setTrustedContact(trustedContacts.email)
         }
       } catch (error) {
-        console.error("Error loading trusted contact:", error)
+        console.error("[v0] Error loading trusted contact:", error)
       }
 
-      // Load videos
-      try {
-        const { data: videos, error: videosError } = await supabase.from("videos").select("*").eq("user_id", userId)
-
-        if (videosError) {
-          console.error("Videos error:", videosError)
-        } else if (videos) {
-          const annualVideos = videos
-            .filter((v) => v.video_type === "annual")
-            .map((video) => ({
-              id: video.id,
-              title: `Video Anual ${video.year}`,
-              year: video.year.toString(),
-              duration: video.duration
-                ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")}`
-                : "1:00",
-              blob: video.blob_url,
-              blobUrl: video.blob_url,
-            }))
-
-          const personalVideos = videos
-            .filter((v) => v.video_type === "personal")
-            .map((video) => ({
-              id: video.id,
-              title: `Mensaje personalizado ${video.year}`,
-              contactName: video.contact_id,
-              year: video.year.toString(),
-              duration: video.duration
-                ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")}`
-                : "1:00",
-              blob: video.blob_url,
-              blobUrl: video.blob_url,
-            }))
-
-          setRecordedVideos(annualVideos)
-          setPersonalizedVideos(personalVideos)
-
-          // Set video blobs for playback
-          const blobUrls = {}
-          videos.forEach((video) => {
-            blobUrls[video.id] = video.blob_url
-          })
-          setVideoBlobs(blobUrls)
-        }
-      } catch (error) {
-        console.error("Error loading videos:", error)
-      }
+      console.log("[v0] User data loading completed")
     } catch (error) {
-      console.error("Error loading user data:", error)
+      console.error("[v0] Error loading user data:", error)
     }
   }
 
