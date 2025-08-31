@@ -73,16 +73,31 @@ export default function TimeCapsule() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session) {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error("Auth error:", error)
+          router.push("/auth/login")
+          return
+        }
+
+        if (!session) {
+          router.push("/auth/login")
+          return
+        }
+
+        setUser(session.user)
+        await loadUserData(session.user.id)
+      } catch (error) {
+        console.error("Session check failed:", error)
         router.push("/auth/login")
-        return
+      } finally {
+        setLoading(false)
       }
-      setUser(session.user)
-      await loadUserData(session.user.id)
-      setLoading(false)
     }
 
     checkAuth()
@@ -91,10 +106,12 @@ export default function TimeCapsule() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT" || !session) {
+        setUser(null)
         router.push("/auth/login")
       } else if (session) {
         setUser(session.user)
         await loadUserData(session.user.id)
+        setLoading(false)
       }
     })
 
@@ -274,7 +291,13 @@ export default function TimeCapsule() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      router.push("/auth/login")
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
   }
 
   const handleDeleteVideo = async (videoId) => {
