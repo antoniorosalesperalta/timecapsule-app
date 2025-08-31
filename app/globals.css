@@ -6,9 +6,9 @@
 
 :root {
   /* Updated color tokens to match the warm, respectful design brief for legacy video app */
-  --background: oklch(1 0 0); /* Pure white for clean feel */
+  --background: oklch(0.98 0.01 340); /* Soft rose background (#fdf2f8) */
   --foreground: oklch(0.35 0 0); /* Dark gray for readability (#475569) */
-  --card: oklch(0.98 0.01 340); /* Soft rose background (#fdf2f8) */
+  --card: oklch(1 0 0); /* Pure white for cards */
   --card-foreground: oklch(0.35 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.35 0 0);
@@ -16,14 +16,14 @@
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.65 0.25 330); /* Pink accent (#ec4899) */
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.98 0 0); /* Light gray for muted elements */
-  --muted-foreground: oklch(0.35 0 0);
+  --muted: oklch(0.96 0.01 340); /* Light rose for muted elements */
+  --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.65 0.25 330); /* Pink accent for highlights */
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.65 0.15 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0 0); /* Light border */
-  --input: oklch(0.96 0 0); /* Light input background */
+  --border: oklch(0.92 0.01 340); /* Light rose border */
+  --input: oklch(0.98 0.01 340); /* Light rose input background */
   --ring: oklch(0.45 0.22 15); /* Primary color for focus rings */
   --chart-1: oklch(0.7 0.15 85);
   --chart-2: oklch(0.7 0.15 160);
@@ -122,6 +122,46 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Added TimeCapsule specific styling */
+  .timecapsule-gradient {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  }
+
+  .timecapsule-card {
+    @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .timecapsule-button-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors;
+  }
+
+  .timecapsule-button-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 px-4 py-2 rounded-lg font-medium transition-colors;
+  }
+
+  .timecapsule-input {
+    @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-transparent;
+  }
+}
+
+@layer components {
+  /* Added component-specific styles for TimeCapsule */
+  .intro-card {
+    @apply bg-white/90 backdrop-blur-sm border border-rose-200 rounded-2xl shadow-lg;
+  }
+
+  .dashboard-card {
+    @apply bg-white border border-rose-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:border-rose-300;
+  }
+
+  .video-modal {
+    @apply bg-black/90 backdrop-blur-sm;
+  }
+
+  .contact-form {
+    @apply space-y-4 p-6 bg-white rounded-lg border border-rose-200;
   }
 }
