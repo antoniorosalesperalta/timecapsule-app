@@ -24,6 +24,7 @@ export default function TimeCapsule() {
   const [loading, setLoading] = useState(true)
   const [showIntro, setShowIntro] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
+  const [setupComplete, setSetupComplete] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [currentView, setCurrentView] = useState("dashboard")
   const [reminderDate, setReminderDate] = useState("")
@@ -67,7 +68,9 @@ export default function TimeCapsule() {
 
         setUser(session.user)
         setLoading(false)
-        setShowIntro(true)
+        if (!setupComplete) {
+          setShowIntro(true)
+        }
       } catch (error) {
         console.error("Auth error:", error)
         router.push("/auth/login")
@@ -75,7 +78,7 @@ export default function TimeCapsule() {
     }
 
     checkAuth()
-  }, [router])
+  }, [router, setupComplete])
 
   const getMinDate = () => {
     const tomorrow = new Date()
@@ -86,7 +89,9 @@ export default function TimeCapsule() {
   const configureReminder = () => {
     if (reminderDate) {
       console.log("Reminder date set:", reminderDate)
+      setSetupComplete(true)
       setShowCalendar(false)
+      setShowIntro(false)
       setCurrentView("dashboard")
     }
   }
@@ -173,23 +178,20 @@ export default function TimeCapsule() {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop()
 
-      // Save the recorded video to our state
       const newVideo = {
         id: Date.now(),
         year: new Date().getFullYear(),
         duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, "0")}`,
         recorded: true,
-        url: null, // Will be set in the onstop handler
+        url: null,
       }
 
-      // Update the mediaRecorder onstop handler to save the video
       if (mediaRecorder) {
         mediaRecorder.onstop = () => {
           const chunks = []
           const blob = new Blob(chunks, { type: "video/webm" })
           const videoUrl = URL.createObjectURL(blob)
 
-          // Update the video with the URL
           newVideo.url = videoUrl
           setSavedVideos((prev) => [...prev, newVideo])
           setRecordedVideo(videoUrl)
@@ -211,7 +213,6 @@ export default function TimeCapsule() {
   }
 
   const playCompiledVideo = () => {
-    // Create a simple compiled video URL (in real app, this would compile all videos)
     if (savedVideos.length > 0) {
       setPlayingVideo(savedVideos[0].url || recordedVideo)
     } else if (recordedVideo) {
@@ -381,7 +382,13 @@ export default function TimeCapsule() {
               </div>
 
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setShowCalendar(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowIntro(false)
+                    setShowCalendar(true)
+                  }}
+                >
                   Saltar
                 </Button>
                 <Button
@@ -389,6 +396,7 @@ export default function TimeCapsule() {
                     if (currentSlide < introSlides.length - 1) {
                       setCurrentSlide(currentSlide + 1)
                     } else {
+                      setShowIntro(false)
                       setShowCalendar(true)
                     }
                   }}
@@ -399,6 +407,90 @@ export default function TimeCapsule() {
             </div>
           </CardContent>
         </Card>
+      </div>
+    )
+  }
+
+  if (setupComplete && currentView === "dashboard" && !showIntro && !showCalendar) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <header className="text-center mb-8">
+            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">TimeCapsule</h1>
+            <p className="text-muted-foreground">Tu legado digital para las futuras generaciones</p>
+          </header>
+
+          <div className="grid gap-6 md:grid-cols-2 mb-8">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("videos")}>
+              <CardHeader>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+                  <Video className="w-6 h-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-lg min-w-0">Tu Video de Vida</CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty">
+                  Graba y gestiona tus videos anuales
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => setCurrentView("personalized")}
+            >
+              <CardHeader>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+                <CardTitle className="text-lg min-w-0">Información Personalizada</CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty">
+                  Contenido especial para cada contacto
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => setCurrentView("contacts")}
+            >
+              <CardHeader>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
+                  <Users className="w-6 h-6 text-green-600" />
+                </div>
+                <CardTitle className="text-lg min-w-0">Contactos</CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty">
+                  Gestiona tu lista de seres queridos
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("legacy")}>
+              <CardHeader>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-2">
+                  <PadlockHeartIcon className="w-6 h-6 text-orange-600" />
+                </div>
+                <CardTitle className="text-lg min-w-0">Sistema de Legado</CardTitle>
+                <CardDescription className="text-sm leading-relaxed text-pretty">
+                  Configura tu legado digital
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
+          <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await supabase.auth.signOut()
+                router.push("/auth/login")
+              }}
+            >
+              Cerrar Sesión
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -415,7 +507,6 @@ export default function TimeCapsule() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Video Completo de Vida */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Video Completo de Vida</CardTitle>
@@ -429,7 +520,6 @@ export default function TimeCapsule() {
                 </CardContent>
               </Card>
 
-              {/* Videos Independientes */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Videos Independientes de Vida</CardTitle>
@@ -457,7 +547,6 @@ export default function TimeCapsule() {
                     </div>
                   ))}
 
-                  {/* Recording Interface */}
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     {!isRecording && !stream ? (
                       <div>
@@ -524,7 +613,6 @@ export default function TimeCapsule() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Add New Contact Form */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">
@@ -600,7 +688,6 @@ export default function TimeCapsule() {
                 </CardContent>
               </Card>
 
-              {/* Contacts List */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Contactos Familiares</CardTitle>
@@ -790,7 +877,6 @@ export default function TimeCapsule() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Trusted Contact */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Contacto de Confianza</CardTitle>
@@ -850,7 +936,6 @@ export default function TimeCapsule() {
                 </CardContent>
               </Card>
 
-              {/* Verification System */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Sistema de Verificación</CardTitle>
@@ -869,7 +954,6 @@ export default function TimeCapsule() {
                 </CardContent>
               </Card>
 
-              {/* Legacy Content */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Contenido del TimeCapsule</CardTitle>
@@ -910,83 +994,4 @@ export default function TimeCapsule() {
       </div>
     )
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        <header className="text-center mb-8">
-          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">TimeCapsule</h1>
-          <p className="text-muted-foreground">Tu legado digital para las futuras generaciones</p>
-        </header>
-
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("videos")}>
-            <CardHeader>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                <Video className="w-6 h-6 text-blue-600" />
-              </div>
-              <CardTitle className="text-lg min-w-0">Tu Video de Vida</CardTitle>
-              <CardDescription className="text-sm leading-relaxed text-pretty">
-                Graba y gestiona tus videos anuales
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => setCurrentView("personalized")}
-          >
-            <CardHeader>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
-                <FileText className="w-6 h-6 text-purple-600" />
-              </div>
-              <CardTitle className="text-lg min-w-0">Información Personalizada</CardTitle>
-              <CardDescription className="text-sm leading-relaxed text-pretty">
-                Contenido especial para cada contacto
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("contacts")}>
-            <CardHeader>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-              <CardTitle className="text-lg min-w-0">Contactos</CardTitle>
-              <CardDescription className="text-sm leading-relaxed text-pretty">
-                Gestiona tu lista de seres queridos
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("legacy")}>
-            <CardHeader>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-2">
-                <PadlockHeartIcon className="w-6 h-6 text-orange-600" />
-              </div>
-              <CardTitle className="text-lg min-w-0">Sistema de Legado</CardTitle>
-              <CardDescription className="text-sm leading-relaxed text-pretty">
-                Configura tu legado digital
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        <div className="text-center">
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await supabase.auth.signOut()
-              router.push("/auth/login")
-            }}
-          >
-            Cerrar Sesión
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
 }
