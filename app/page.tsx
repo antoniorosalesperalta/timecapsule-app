@@ -23,13 +23,14 @@ export default function TimeCapsule() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showIntro, setShowIntro] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [currentView, setCurrentView] = useState("dashboard")
   const [reminderDate, setReminderDate] = useState("")
   const [familyContacts, setFamilyContacts] = useState([])
   const [newContact, setNewContact] = useState({ name: "", email: "", relation: "", rut: "" })
   const [editingContact, setEditingContact] = useState(null)
-  const [trustedContact, setTrustedContact] = useState({ email: "", name: "" })
+  const [trustedContact, setTrustedContact] = useState({ email: "", name: "", saved: false })
   const [personalizedFiles, setPersonalizedFiles] = useState({})
   const [selectedContact, setSelectedContact] = useState(null)
   const [showFileModal, setShowFileModal] = useState(false)
@@ -75,6 +76,20 @@ export default function TimeCapsule() {
 
     checkAuth()
   }, [router])
+
+  const getMinDate = () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split("T")[0]
+  }
+
+  const configureReminder = () => {
+    if (reminderDate) {
+      console.log("Reminder date set:", reminderDate)
+      setShowCalendar(false)
+      setCurrentView("dashboard")
+    }
+  }
 
   const handleAddContact = () => {
     if (newContact.name && newContact.email && newContact.relation && newContact.rut) {
@@ -211,12 +226,39 @@ export default function TimeCapsule() {
 
   const saveTrustedContact = () => {
     if (trustedContact.name && trustedContact.email) {
-      // In a real app, this would save to database
+      setTrustedContact({ ...trustedContact, saved: true })
       console.log("Saving trusted contact:", trustedContact)
       alert("Contacto de confianza guardado exitosamente")
     } else {
       alert("Por favor completa todos los campos")
     }
+  }
+
+  const handleViewFiles = (contact) => {
+    setSelectedContact(contact)
+    setShowFileModal(true)
+  }
+
+  const handleAddFile = (contact) => {
+    setSelectedContact(contact)
+    setNewFile({ title: "", type: "text", content: "", file: null })
+    setShowFileModal(true)
+  }
+
+  const handleSaveFile = () => {
+    if (selectedContact && newFile.title) {
+      const contactFiles = personalizedFiles[selectedContact.id] || []
+      const updatedFiles = [...contactFiles, { ...newFile, id: Date.now() }]
+      setPersonalizedFiles({ ...personalizedFiles, [selectedContact.id]: updatedFiles })
+      setShowFileModal(false)
+      setNewFile({ title: "", type: "text", content: "", file: null })
+    }
+  }
+
+  const handleDeleteFile = (contactId, fileId) => {
+    const contactFiles = personalizedFiles[contactId] || []
+    const updatedFiles = contactFiles.filter((file) => file.id !== fileId)
+    setPersonalizedFiles({ ...personalizedFiles, [contactId]: updatedFiles })
   }
 
   if (loading) {
@@ -267,6 +309,40 @@ export default function TimeCapsule() {
     },
   ]
 
+  if (showCalendar) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Bienvenido a TimeCapsule!</h1>
+              <p className="text-muted-foreground">Configura tu primer recordatorio para comenzar tu legado digital</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="reminderDate">¿Cuándo quieres grabar tu primer video?</Label>
+                <Input
+                  id="reminderDate"
+                  type="date"
+                  value={reminderDate}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                  min={getMinDate()}
+                />
+              </div>
+              <Button onClick={configureReminder} className="w-full">
+                Configurar Recordatorio
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (showIntro) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
@@ -305,7 +381,7 @@ export default function TimeCapsule() {
               </div>
 
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setShowIntro(false)}>
+                <Button variant="outline" onClick={() => setShowCalendar(true)}>
                   Saltar
                 </Button>
                 <Button
@@ -313,7 +389,7 @@ export default function TimeCapsule() {
                     if (currentSlide < introSlides.length - 1) {
                       setCurrentSlide(currentSlide + 1)
                     } else {
-                      setShowIntro(false)
+                      setShowCalendar(true)
                     }
                   }}
                 >
@@ -601,18 +677,27 @@ export default function TimeCapsule() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex gap-2 flex-wrap">
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => handleViewFiles(contact)}>
                             Ver Archivos
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => handleAddFile(contact)}>
                             <Plus className="w-4 h-4 mr-1" />
                             Agregar
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => handleAddFile(contact)}>
                             <Edit className="w-4 h-4 mr-1" />
                             Editar
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              if (personalizedFiles[contact.id]?.length > 0) {
+                                const fileToDelete = personalizedFiles[contact.id][0]
+                                handleDeleteFile(contact.id, fileToDelete.id)
+                              }
+                            }}
+                          >
                             <Trash2 className="w-4 h-4 mr-1" />
                             Eliminar
                           </Button>
@@ -630,6 +715,65 @@ export default function TimeCapsule() {
             </CardContent>
           </Card>
         </div>
+
+        {showFileModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">
+                  {personalizedFiles[selectedContact?.id]?.length > 0
+                    ? "Archivos de " + selectedContact?.name
+                    : "Agregar Archivo"}
+                </h3>
+                <Button variant="outline" size="sm" onClick={() => setShowFileModal(false)}>
+                  ×
+                </Button>
+              </div>
+
+              {personalizedFiles[selectedContact?.id]?.length > 0 ? (
+                <div className="space-y-2">
+                  {personalizedFiles[selectedContact.id].map((file) => (
+                    <div key={file.id} className="flex justify-between items-center p-2 border rounded">
+                      <span>{file.title}</span>
+                      <Button size="sm" variant="outline" onClick={() => handleDeleteFile(selectedContact.id, file.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="fileTitle">Título</Label>
+                    <Input
+                      id="fileTitle"
+                      value={newFile.title}
+                      onChange={(e) => setNewFile({ ...newFile, title: e.target.value })}
+                      placeholder="Título del archivo"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="fileType">Tipo</Label>
+                    <Select value={newFile.type} onValueChange={(value) => setNewFile({ ...newFile, type: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Texto</SelectItem>
+                        <SelectItem value="image">Imagen</SelectItem>
+                        <SelectItem value="video">Video</SelectItem>
+                        <SelectItem value="document">Documento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleSaveFile} className="w-full">
+                    Guardar Archivo
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -653,28 +797,46 @@ export default function TimeCapsule() {
                   <CardDescription>Persona responsable de activar el envío de tu TimeCapsule</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="trustedName">Nombre</Label>
-                    <Input
-                      id="trustedName"
-                      value={trustedContact.name}
-                      onChange={(e) => setTrustedContact({ ...trustedContact, name: e.target.value })}
-                      placeholder="Nombre del contacto de confianza"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="trustedEmail">Email</Label>
-                    <Input
-                      id="trustedEmail"
-                      type="email"
-                      value={trustedContact.email}
-                      onChange={(e) => setTrustedContact({ ...trustedContact, email: e.target.value })}
-                      placeholder="correo@ejemplo.com"
-                    />
-                  </div>
-                  <Button className="w-full" onClick={saveTrustedContact}>
-                    Guardar Contacto de Confianza
-                  </Button>
+                  {trustedContact.saved ? (
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <h4 className="font-medium text-green-800">Contacto de Confianza Guardado</h4>
+                      <p className="text-sm text-green-600">Nombre: {trustedContact.name}</p>
+                      <p className="text-sm text-green-600">Email: {trustedContact.email}</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2 bg-transparent"
+                        onClick={() => setTrustedContact({ ...trustedContact, saved: false })}
+                      >
+                        Editar
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <Label htmlFor="trustedName">Nombre</Label>
+                        <Input
+                          id="trustedName"
+                          value={trustedContact.name}
+                          onChange={(e) => setTrustedContact({ ...trustedContact, name: e.target.value })}
+                          placeholder="Nombre del contacto de confianza"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="trustedEmail">Email</Label>
+                        <Input
+                          id="trustedEmail"
+                          type="email"
+                          value={trustedContact.email}
+                          onChange={(e) => setTrustedContact({ ...trustedContact, email: e.target.value })}
+                          placeholder="correo@ejemplo.com"
+                        />
+                      </div>
+                      <Button className="w-full" onClick={saveTrustedContact}>
+                        Guardar Contacto de Confianza
+                      </Button>
+                    </>
+                  )}
 
                   <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-medium mb-2">Responsabilidades del contacto de confianza:</h4>
