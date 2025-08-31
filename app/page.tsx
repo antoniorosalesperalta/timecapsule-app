@@ -140,86 +140,120 @@ export default function TimeCapsule() {
   const loadUserData = async (userId) => {
     try {
       // Load profile data
-      const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single()
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single()
 
-      if (profile) {
-        setReminderDate(profile.annual_reminder_date || "")
-        setIsConfigured(!!profile.annual_reminder_date)
-        setLastCheckIn(
-          new Date(profile.last_check_in).toLocaleDateString("es-ES", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          }),
-        )
+        if (profileError && profileError.code !== "PGRST116") {
+          // PGRST116 is "not found" error
+          console.error("Profile error:", profileError)
+        }
+
+        if (profile) {
+          setReminderDate(profile.annual_reminder_date || "")
+          setIsConfigured(!!profile.annual_reminder_date)
+          setLastCheckIn(
+            new Date(profile.last_check_in).toLocaleDateString("es-ES", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+          )
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error)
       }
 
       // Load contacts
-      const { data: contacts } = await supabase.from("contacts").select("*").eq("user_id", userId)
+      try {
+        const { data: contacts, error: contactsError } = await supabase
+          .from("contacts")
+          .select("*")
+          .eq("user_id", userId)
 
-      if (contacts) {
-        setFamilyContacts(
-          contacts.map((contact) => ({
-            id: contact.id,
-            name: contact.name,
-            email: contact.email,
-            relation: contact.relationship,
-            rut: contact.rut || "",
-          })),
-        )
+        if (contactsError) {
+          console.error("Contacts error:", contactsError)
+        } else if (contacts) {
+          setFamilyContacts(
+            contacts.map((contact) => ({
+              id: contact.id,
+              name: contact.name,
+              email: contact.email,
+              relation: contact.relationship,
+              rut: contact.rut || "",
+            })),
+          )
+        }
+      } catch (error) {
+        console.error("Error loading contacts:", error)
       }
 
       // Load trusted contact
-      const { data: trustedContacts } = await supabase
-        .from("trusted_contacts")
-        .select("*")
-        .eq("user_id", userId)
-        .single()
+      try {
+        const { data: trustedContacts, error: trustedError } = await supabase
+          .from("trusted_contacts")
+          .select("*")
+          .eq("user_id", userId)
+          .single()
 
-      if (trustedContacts) {
-        setTrustedContact(trustedContacts.email)
+        if (trustedError && trustedError.code !== "PGRST116") {
+          console.error("Trusted contact error:", trustedError)
+        } else if (trustedContacts) {
+          setTrustedContact(trustedContacts.email)
+        }
+      } catch (error) {
+        console.error("Error loading trusted contact:", error)
       }
 
       // Load videos
-      const { data: videos } = await supabase.from("videos").select("*").eq("user_id", userId)
+      try {
+        const { data: videos, error: videosError } = await supabase.from("videos").select("*").eq("user_id", userId)
 
-      if (videos) {
-        const annualVideos = videos
-          .filter((v) => v.video_type === "annual")
-          .map((video) => ({
-            id: video.id,
-            title: `Video Anual ${video.year}`,
-            year: video.year.toString(),
-            duration: video.duration
-              ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")}`
-              : "1:00",
-            blob: video.blob_url,
-            blobUrl: video.blob_url,
-          }))
+        if (videosError) {
+          console.error("Videos error:", videosError)
+        } else if (videos) {
+          const annualVideos = videos
+            .filter((v) => v.video_type === "annual")
+            .map((video) => ({
+              id: video.id,
+              title: `Video Anual ${video.year}`,
+              year: video.year.toString(),
+              duration: video.duration
+                ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")}`
+                : "1:00",
+              blob: video.blob_url,
+              blobUrl: video.blob_url,
+            }))
 
-        const personalVideos = videos
-          .filter((v) => v.video_type === "personal")
-          .map((video) => ({
-            id: video.id,
-            title: `Mensaje personalizado ${video.year}`,
-            contactName: video.contact_id,
-            year: video.year.toString(),
-            duration: video.duration
-              ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")}`
-              : "1:00",
-            blob: video.blob_url,
-            blobUrl: video.blob_url,
-          }))
+          const personalVideos = videos
+            .filter((v) => v.video_type === "personal")
+            .map((video) => ({
+              id: video.id,
+              title: `Mensaje personalizado ${video.year}`,
+              contactName: video.contact_id,
+              year: video.year.toString(),
+              duration: video.duration
+                ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")}`
+                : "1:00",
+              blob: video.blob_url,
+              blobUrl: video.blob_url,
+            }))
 
-        setRecordedVideos(annualVideos)
-        setPersonalizedVideos(personalVideos)
+          setRecordedVideos(annualVideos)
+          setPersonalizedVideos(personalVideos)
 
-        // Set video blobs for playback
-        const blobUrls = {}
-        videos.forEach((video) => {
-          blobUrls[video.id] = video.blob_url
-        })
-        setVideoBlobs(blobUrls)
+          // Set video blobs for playback
+          const blobUrls = {}
+          videos.forEach((video) => {
+            blobUrls[video.id] = video.blob_url
+          })
+          setVideoBlobs(blobUrls)
+        }
+      } catch (error) {
+        console.error("Error loading videos:", error)
       }
     } catch (error) {
       console.error("Error loading user data:", error)
