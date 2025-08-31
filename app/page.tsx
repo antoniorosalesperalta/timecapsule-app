@@ -78,32 +78,43 @@ export default function TimeCapsule() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("[v0] Starting auth check")
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession()
 
-        if (error || !session) {
+        if (error) {
+          console.log("[v0] Auth error:", error)
           setLoading(false)
           router.push("/auth/login")
           return
         }
 
+        if (!session) {
+          console.log("[v0] No session found, redirecting to login")
+          setLoading(false)
+          router.push("/auth/login")
+          return
+        }
+
+        console.log("[v0] User authenticated:", session.user.email)
         setUser(session.user)
         await loadUserData(session.user.id)
         setLoading(false)
       } catch (error) {
-        console.error("Auth check failed:", error)
+        console.error("[v0] Auth check failed:", error)
         setLoading(false)
         router.push("/auth/login")
       }
     }
 
     checkAuth()
-  }, [])
+  }, [router])
 
   const loadUserData = async (userId) => {
     try {
+      console.log("[v0] Loading user data for:", userId)
       // Load profile data
       const { data: profile } = await supabase
         .from("profiles")
@@ -111,77 +122,45 @@ export default function TimeCapsule() {
         .eq("id", userId)
         .single()
 
+      console.log("[v0] Profile data:", profile)
+
       if (profile) {
-        setReminderDate(profile.annual_reminder_date || "")
-        setIsConfigured(!!profile.annual_reminder_date)
-        setShowIntro(!profile.annual_reminder_date)
-        if (profile.last_check_in) {
-          setLastCheckIn(new Date(profile.last_check_in).toLocaleDateString("es-ES"))
+        if (profile.annual_reminder_date) {
+          setReminderDate(profile.annual_reminder_date)
+          setIsConfigured(true)
+          setShowIntro(profile.show_intro === true)
+        } else {
+          setIsConfigured(false)
+          setShowIntro(false)
         }
       } else {
-        setShowIntro(true)
         setIsConfigured(false)
+        setShowIntro(false)
       }
 
-      // Load contacts
+      // Load other data...
       const { data: contacts } = await supabase.from("contacts").select("*").eq("user_id", userId)
+
       if (contacts) {
-        setFamilyContacts(
-          contacts.map((contact) => ({
-            id: contact.id,
-            name: contact.name,
-            email: contact.email,
-            relation: contact.relationship,
-            rut: contact.rut || "",
-          })),
-        )
+        setFamilyContacts(contacts)
       }
-
-      // Load trusted contact
-      const { data: trustedContacts } = await supabase
-        .from("trusted_contacts")
-        .select("email")
-        .eq("user_id", userId)
-        .single()
-      if (trustedContacts) {
-        setTrustedContact(trustedContacts.email)
-      }
-
-      // Check if user has recorded this year
-      const currentYear = new Date().getFullYear()
-      const { data: videos } = await supabase
-        .from("videos")
-        .select("*")
-        .eq("user_id", userId)
-        .gte("created_at", `${currentYear}-01-01`)
-        .lt("created_at", `${currentYear + 1}-01-01`)
-
-      if (videos && videos.length > 0) {
-        setHasRecordedThisYear(true)
-        setRecordedVideos(videos.filter((v) => v.video_type === "annual"))
-        setPersonalizedVideos(videos.filter((v) => v.video_type === "personalized"))
-      }
-
-      // Initialize personalized info structure
-      const infoStructure = {}
-      contacts?.forEach((contact) => {
-        infoStructure[contact.id] = []
-      })
-      setPersonalizedInfo(infoStructure)
     } catch (error) {
-      console.error("Error loading user data:", error)
+      console.error("[v0] Error loading user data:", error)
     }
   }
 
   const handleDateSubmit = async () => {
-    if (!reminderDate || !user) return
+    if (!reminderDate || !user) {
+      console.log("[v0] Missing reminder date or user")
+      return
+    }
 
     try {
       console.log("[v0] Saving reminder date:", reminderDate)
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         annual_reminder_date: reminderDate,
-        show_intro: false,
+        show_intro: true, // Set show_intro to true after saving date
         updated_at: new Date().toISOString(),
       })
 
@@ -192,7 +171,7 @@ export default function TimeCapsule() {
 
       console.log("[v0] Reminder date saved successfully")
       setIsConfigured(true)
-      setShowIntro(true)
+      setShowIntro(true) // Show intro after successful save
     } catch (error) {
       console.error("[v0] Error saving reminder date:", error)
     }
