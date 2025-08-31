@@ -53,6 +53,7 @@ export default function TimeCapsule() {
   const router = useRouter()
   const supabase = createClient()
   const videoRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -68,6 +69,8 @@ export default function TimeCapsule() {
 
         setUser(session.user)
         setLoading(false)
+
+        // For now, we'll assume they need to go through intro/calendar if not setupComplete
         if (!setupComplete) {
           setShowIntro(true)
         }
@@ -253,6 +256,13 @@ export default function TimeCapsule() {
       setPersonalizedFiles({ ...personalizedFiles, [selectedContact.id]: updatedFiles })
       setShowFileModal(false)
       setNewFile({ title: "", type: "text", content: "", file: null })
+    }
+  }
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      setNewFile({ ...newFile, file: file })
     }
   }
 
@@ -852,6 +862,19 @@ export default function TimeCapsule() {
                         <SelectItem value="document">Documento</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="fileUpload">Subir Archivo</Label>
+                    <Input
+                      id="fileUpload"
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept={newFile.type === "image" ? "image/*" : newFile.type === "video" ? "video/*" : "*/*"}
+                    />
+                    {newFile.file && (
+                      <p className="text-sm text-muted-foreground mt-1">Archivo seleccionado: {newFile.file.name}</p>
+                    )}
                   </div>
                   <Button onClick={handleSaveFile} className="w-full">
                     Guardar Archivo
