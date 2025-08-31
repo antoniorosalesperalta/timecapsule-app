@@ -402,7 +402,7 @@ export default function TimeCapsule() {
 
         try {
           const formData = new FormData()
-          formData.append("video", blob, `video-${Date.now()}.webm`)
+          formData.append("file", blob, `video-${Date.now()}.webm`)
           formData.append("year", new Date().getFullYear().toString())
           formData.append("duration", actualDuration.toString())
           formData.append("videoType", "annual")
