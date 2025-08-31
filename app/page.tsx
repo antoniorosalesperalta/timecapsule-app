@@ -286,9 +286,9 @@ export default function TimeCapsule() {
         videoRef.current.srcObject = mediaStream
       }
 
-      const recorder = new MediaRecorder(mediaStream, {
-        mimeType: "video/webm;codecs=vp9",
-      })
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp8") ? "video/webm;codecs=vp8" : "video/webm"
+
+      const recorder = new MediaRecorder(mediaStream, { mimeType })
       const chunks = []
       const startTime = Date.now()
 
@@ -305,8 +305,12 @@ export default function TimeCapsule() {
         const actualDuration = Math.floor((endTime - startTime) / 1000)
         const durationText = `${Math.floor(actualDuration / 60)}:${(actualDuration % 60).toString().padStart(2, "0")}`
 
-        const blob = new Blob(chunks, { type: "video/webm" })
+        const blob = new Blob(chunks, { type: mimeType })
         const videoUrl = URL.createObjectURL(blob)
+
+        console.log("[v0] Created video URL:", videoUrl)
+        console.log("[v0] Blob size:", blob.size, "bytes")
+
         const newVideo = {
           id: Date.now(),
           year: new Date().getFullYear(),
@@ -314,6 +318,7 @@ export default function TimeCapsule() {
           recorded: true,
           url: videoUrl,
           blob: blob,
+          mimeType: mimeType,
         }
 
         console.log("[v0] Video saved with duration:", durationText)
@@ -328,32 +333,27 @@ export default function TimeCapsule() {
         setStream(null)
       }
 
-      recorder.start()
+      recorder.start(1000) // Record in 1-second chunks
       setMediaRecorder(recorder)
       setIsRecording(true)
-      setRecordingTime(0)
 
-      // Start recording timer
+      // Timer for recording duration
       const timer = setInterval(() => {
-        setRecordingTime((prev) => {
-          const newTime = prev + 1
-          if (newTime >= 60) {
-            // Auto-stop at 60 seconds
-            if (recorder.state === "recording") {
-              recorder.stop()
-              clearInterval(timer)
-            }
-            return 60
-          }
-          return newTime
-        })
+        setRecordingTime((prev) => prev + 1)
       }, 1000)
 
-      // Store timer reference for cleanup
-      setMediaRecorder((prev) => ({ ...prev, timer }))
+      // Auto-stop after 60 seconds
+      setTimeout(() => {
+        if (recorder.state === "recording") {
+          recorder.stop()
+          clearInterval(timer)
+        }
+      }, 60000)
+
+      recorder.timer = timer
     } catch (error) {
       console.error("[v0] Error starting recording:", error)
-      alert("Error al acceder a la cámara. Por favor, permite el acceso.")
+      alert("Error al acceder a la cámara: " + error.message)
     }
   }
 
@@ -374,11 +374,18 @@ export default function TimeCapsule() {
 
   const playVideo = (videoUrl) => {
     console.log("[v0] Playing video:", videoUrl)
-    if (videoUrl && (videoUrl.startsWith("blob:") || videoUrl.startsWith("http"))) {
+    if (!videoUrl) {
+      console.error("[v0] No video URL provided")
+      alert("Video no disponible")
+      return
+    }
+
+    if (videoUrl.startsWith("blob:") || videoUrl.startsWith("http")) {
+      console.log("[v0] Setting video for playback:", videoUrl)
       setPlayingVideo(videoUrl)
     } else {
-      console.error("[v0] Invalid video URL:", videoUrl)
-      alert("Video no disponible o corrupto")
+      console.error("[v0] Invalid video URL format:", videoUrl)
+      alert("Formato de video no válido")
     }
   }
 
@@ -1181,13 +1188,19 @@ export default function TimeCapsule() {
           controls
           className="w-full rounded"
           autoPlay
+          preload="metadata"
           onError={(e) => {
             console.error("[v0] Video playback error:", e)
             console.error("[v0] Video URL:", playingVideo)
-            alert("Error al reproducir el video. El archivo puede estar corrupto.")
+            console.error("[v0] Video element error:", e.target.error)
+            alert(
+              `Error al reproducir el video: ${e.target.error?.message || "Archivo corrupto o formato no soportado"}`,
+            )
           }}
           onLoadStart={() => console.log("[v0] Video loading started")}
+          onLoadedMetadata={() => console.log("[v0] Video metadata loaded")}
           onCanPlay={() => console.log("[v0] Video can play")}
+          onPlay={() => console.log("[v0] Video started playing")}
         />
       </div>
     </div>
