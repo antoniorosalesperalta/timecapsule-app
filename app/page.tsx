@@ -80,16 +80,16 @@ export default function TimeCapsule() {
         .single()
 
       if (profile?.annual_reminder_date) {
-        console.log("[v0] User setup complete, going to dashboard")
+        console.log("[v0] User setup complete, going directly to dashboard")
         setSetupComplete(true)
         setShowIntro(false)
         setShowCalendar(false)
         setCurrentView("dashboard")
       } else {
-        console.log("[v0] User needs setup, starting with intro")
+        console.log("[v0] User needs setup, starting with introduction")
+        setSetupComplete(false)
         setShowIntro(true)
         setShowCalendar(false)
-        setSetupComplete(false)
         setCurrentView("intro")
       }
 
@@ -131,14 +131,18 @@ export default function TimeCapsule() {
     if (currentSlide < carouselImages.length - 1) {
       setCurrentSlide(currentSlide + 1)
     } else {
+      console.log("[v0] Introduction completed, showing calendar")
       setShowIntro(false)
       setShowCalendar(true)
+      setCurrentView("calendar")
     }
   }
 
   const skipIntro = () => {
+    console.log("[v0] Introduction skipped, showing calendar")
     setShowIntro(false)
     setShowCalendar(true)
+    setCurrentView("calendar")
   }
 
   const getMinDate = () => {
@@ -364,7 +368,7 @@ export default function TimeCapsule() {
     )
   }
 
-  if (showIntro && currentView === "intro") {
+  if (showIntro && !setupComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
@@ -436,7 +440,7 @@ export default function TimeCapsule() {
     )
   }
 
-  if (currentView === "dashboard" && setupComplete) {
+  if (setupComplete && currentView === "dashboard") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
         <div className="max-w-4xl mx-auto">
