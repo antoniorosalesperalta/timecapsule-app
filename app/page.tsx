@@ -515,14 +515,22 @@ export default function TimeCapsule() {
     setRecordingTime(0)
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push("/auth/login")
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
+          <div className="w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse">
+            <PadlockHeartIcon className="w-12 h-12 text-white" />
           </div>
-          <p className="text-lg text-muted-foreground">Cargando TimeCapsule...</p>
+          <p className="text-xl font-medium text-gray-700">Cargando TimeCapsule...</p>
+          <div className="mt-4 w-32 h-1 bg-rose-200 rounded-full mx-auto overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-rose-500 to-pink-600 rounded-full animate-pulse"></div>
+          </div>
         </div>
       </div>
     )
@@ -530,33 +538,46 @@ export default function TimeCapsule() {
 
   if (showIntro) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-lg">
-          <CardContent className="p-6">
-            <div className="aspect-[3/2] mb-4 rounded-lg overflow-hidden bg-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg intro-card shadow-2xl">
+          <CardContent className="p-8">
+            <div className="aspect-[3/2] mb-6 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 shadow-inner">
               <img
                 src={carouselImages[currentSlide].src || "/placeholder.svg"}
                 alt={carouselImages[currentSlide].title}
                 className="w-full h-full object-cover"
               />
             </div>
-            <h2 className="text-2xl font-bold text-center mb-2 text-balance">{carouselImages[currentSlide].title}</h2>
-            <p className="text-muted-foreground text-center mb-6 text-pretty">
+            <h2 className="text-3xl font-bold text-center mb-3 text-gray-800 text-balance">
+              {carouselImages[currentSlide].title}
+            </h2>
+            <p className="text-gray-600 text-center mb-8 text-lg leading-relaxed text-pretty">
               {carouselImages[currentSlide].description}
             </p>
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-8">
               {carouselImages.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full mx-1 ${index === currentSlide ? "bg-rose-600" : "bg-gray-300"}`}
+                  className={`w-3 h-3 rounded-full mx-1.5 transition-all duration-300 ${
+                    index === currentSlide
+                      ? "bg-gradient-to-r from-rose-500 to-pink-600 scale-110"
+                      : "bg-rose-200 hover:bg-rose-300"
+                  }`}
                 />
               ))}
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={skipIntro} className="flex-1 bg-transparent">
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={skipIntro}
+                className="flex-1 border-rose-300 text-rose-700 hover:bg-rose-50 hover:border-rose-400 font-medium bg-transparent"
+              >
                 Saltar
               </Button>
-              <Button onClick={nextSlide} className="flex-1">
+              <Button
+                onClick={nextSlide}
+                className="flex-1 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium shadow-lg"
+              >
                 Siguiente
               </Button>
             </div>
@@ -568,18 +589,18 @@ export default function TimeCapsule() {
 
   if (showCalendar && !setupComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md intro-card shadow-2xl">
+          <CardContent className="p-8 text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <PadlockHeartIcon className="w-12 h-12 text-white" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">¡Bienvenido a TimeCapsule!</h2>
-            <p className="text-muted-foreground mb-6">
+            <h2 className="text-3xl font-bold mb-3 text-gray-800">¡Bienvenido a TimeCapsule!</h2>
+            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
               Configura tu primer recordatorio para comenzar tu legado digital
             </p>
-            <div className="mb-6">
-              <Label htmlFor="reminderDate" className="text-left block mb-2">
+            <div className="mb-8">
+              <Label htmlFor="reminderDate" className="text-left block mb-3 text-gray-700 font-medium">
                 ¿Cuándo quieres grabar tu primer video?
               </Label>
               <Input
@@ -588,10 +609,13 @@ export default function TimeCapsule() {
                 value={reminderDate}
                 onChange={(e) => setReminderDate(e.target.value)}
                 min={getMinDate()}
-                className="w-full"
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-rose-500 focus:ring focus:ring-rose-200 focus:ring-opacity-50"
               />
             </div>
-            <Button onClick={configureReminder} className="w-full" disabled={!reminderDate}>
+            <Button
+              onClick={configureReminder}
+              className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium py-3 shadow-lg"
+            >
               Configurar Recordatorio
             </Button>
           </CardContent>
@@ -600,89 +624,79 @@ export default function TimeCapsule() {
     )
   }
 
-  if (currentView === "dashboard") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
-        <div className="max-w-4xl mx-auto">
-          <header className="text-center mb-8">
-            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">TimeCapsule</h1>
-            <p className="text-muted-foreground">Tu legado digital para las futuras generaciones</p>
-          </header>
-
-          <div className="grid gap-6 md:grid-cols-2 mb-8">
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("videos")}>
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                  <Video className="w-6 h-6 text-blue-600" />
-                </div>
-                <CardTitle className="text-lg min-w-0">Tu Video de Vida</CardTitle>
-                <CardDescription className="text-sm leading-relaxed text-pretty">
-                  Graba y gestiona tus videos anuales
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setCurrentView("personalized")}
-            >
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
-                  <FileText className="w-6 h-6 text-purple-600" />
-                </div>
-                <CardTitle className="text-lg min-w-0">Información Personalizada</CardTitle>
-                <CardDescription className="text-sm leading-relaxed text-pretty">
-                  Contenido especial para cada contacto
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setCurrentView("contacts")}
-            >
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <CardTitle className="text-lg min-w-0">Contactos</CardTitle>
-                <CardDescription className="text-sm leading-relaxed text-pretty">
-                  Gestiona tu lista de seres queridos
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("legacy")}>
-              <CardHeader>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-2">
-                  <PadlockHeartIcon className="w-6 h-6 text-orange-600" />
-                </div>
-                <CardTitle className="text-lg min-w-0">Sistema de Legado</CardTitle>
-                <CardDescription className="text-sm leading-relaxed text-pretty">
-                  Configura tu legado digital
-                </CardDescription>
-              </CardHeader>
-            </Card>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        <header className="text-center mb-12">
+          <div className="w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <PadlockHeartIcon className="w-12 h-12 text-white" />
           </div>
+          <h1 className="text-5xl font-bold text-gray-800 mb-3">TimeCapsule</h1>
+          <p className="text-xl text-gray-600 font-medium">Tu legado digital para las futuras generaciones</p>
+        </header>
 
-          <div className="text-center">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await supabase.auth.signOut()
-                router.push("/auth/login")
-              }}
-            >
-              Cerrar Sesión
-            </Button>
-          </div>
+        <div className="grid gap-8 md:grid-cols-2 mb-12">
+          <Card className="dashboard-card cursor-pointer group" onClick={() => setCurrentView("videos")}>
+            <CardHeader className="p-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform">
+                <Video className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 min-w-0">Tu Video de Vida</CardTitle>
+              <CardDescription className="text-gray-600 leading-relaxed text-pretty">
+                Graba y gestiona tus videos anuales
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="dashboard-card cursor-pointer group" onClick={() => setCurrentView("personalized")}>
+            <CardHeader className="p-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 min-w-0">Información Personalizada</CardTitle>
+              <CardDescription className="text-gray-600 leading-relaxed text-pretty">
+                Contenido especial para cada contacto
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="dashboard-card cursor-pointer group" onClick={() => setCurrentView("contacts")}>
+            <CardHeader className="p-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 min-w-0">Contactos</CardTitle>
+              <CardDescription className="text-gray-600 leading-relaxed text-pretty">
+                Gestiona tu lista de seres queridos
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="dashboard-card cursor-pointer group" onClick={() => setCurrentView("legacy")}>
+            <CardHeader className="p-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-105 transition-transform">
+                <PadlockHeartIcon className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 min-w-0">Sistema de Legado</CardTitle>
+              <CardDescription className="text-gray-600 leading-relaxed text-pretty">
+                Configura tu legado digital
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="border-rose-300 text-rose-700 hover:bg-rose-50 hover:border-rose-400 font-medium px-8 py-2 bg-transparent"
+          >
+            Cerrar Sesión
+          </Button>
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 
   if (currentView === "videos") {
     return (
