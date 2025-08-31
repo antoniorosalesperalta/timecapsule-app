@@ -34,23 +34,12 @@ export default function TimeCapsule() {
   const [lastCheckIn, setLastCheckIn] = useState(new Date().toLocaleDateString("es-ES"))
 
   useEffect(() => {
-    let timeoutId = null
-
     const checkAuth = async () => {
       try {
-        // Set a timeout to prevent infinite loading
-        timeoutId = setTimeout(() => {
-          console.log("[v0] Auth check timeout, proceeding without auth")
-          setLoading(false)
-          setShowIntro(true)
-        }, 5000)
-
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession()
-
-        clearTimeout(timeoutId)
 
         if (error) {
           console.error("Auth error:", error)
@@ -73,7 +62,6 @@ export default function TimeCapsule() {
         }
         setLoading(false)
       } catch (error) {
-        clearTimeout(timeoutId)
         console.error("Session check failed:", error)
         setLoading(false)
         router.push("/auth/login")
@@ -81,15 +69,10 @@ export default function TimeCapsule() {
     }
 
     checkAuth()
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
   }, [])
 
   const loadBasicUserData = async (userId) => {
     try {
-      // Load only essential data
       const { data: profile } = await supabase
         .from("profiles")
         .select("annual_reminder_date, last_check_in")
@@ -104,7 +87,6 @@ export default function TimeCapsule() {
         }
       }
 
-      // Load contacts
       const { data: contacts } = await supabase.from("contacts").select("*").eq("user_id", userId)
 
       if (contacts) {
@@ -119,7 +101,6 @@ export default function TimeCapsule() {
         )
       }
 
-      // Load trusted contact
       const { data: trustedContacts } = await supabase
         .from("trusted_contacts")
         .select("email")
@@ -145,6 +126,10 @@ export default function TimeCapsule() {
         </div>
       </div>
     )
+  }
+
+  if (!user) {
+    return null // Will redirect to login
   }
 
   const introSlides = [
