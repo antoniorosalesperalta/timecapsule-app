@@ -172,6 +172,31 @@ export default function TimeCapsule() {
     }
   }
 
+  const handleDateSubmit = async () => {
+    if (!reminderDate || !user) return
+
+    try {
+      console.log("[v0] Saving reminder date:", reminderDate)
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        annual_reminder_date: reminderDate,
+        show_intro: true,
+        updated_at: new Date().toISOString(),
+      })
+
+      if (error) {
+        console.error("[v0] Error saving reminder date:", error)
+        return
+      }
+
+      console.log("[v0] Reminder date saved successfully")
+      setShowIntro(true)
+      setIsConfigured(true)
+    } catch (error) {
+      console.error("[v0] Error saving reminder date:", error)
+    }
+  }
+
   const startRecording = async (isPersonalized = false, contactId = null) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -511,25 +536,6 @@ export default function TimeCapsule() {
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
       return tomorrow.toISOString().split("T")[0]
-    }
-
-    const handleDateSubmit = async () => {
-      if (!reminderDate || !user) return
-
-      try {
-        const { error } = await supabase.from("profiles").upsert({
-          id: user.id,
-          annual_reminder_date: reminderDate,
-          show_intro: true,
-          updated_at: new Date().toISOString(),
-        })
-
-        if (!error) {
-          setIsConfigured(true)
-        }
-      } catch (error) {
-        console.error("Error saving reminder date:", error)
-      }
     }
 
     return (
