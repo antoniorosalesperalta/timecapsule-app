@@ -75,7 +75,6 @@
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -122,3 +121,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* === Estilos personalizados para el Login === */
+.login-card {
+  @apply bg-[#fdeff1] rounded-xl shadow-md p-8 max-w-md mx-auto;
+}
+
+.login-card h1 {
+  @apply text-2xl font-bold text-center mb-6;
+}
+
+.login-card input {
+  @apply w-full mb-4 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#b3003c];
+}
+
+.login-card button {
+  @apply w-full rounded-lg bg-[#b3003c] py-2 font-semibold text-white transition hover:bg-[#990035];
+}
+
