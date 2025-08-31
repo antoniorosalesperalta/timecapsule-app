@@ -5,14 +5,14 @@
 ### 1. Preparación del Repositorio
 
 1. **Crea un repositorio en GitHub:**
-   ```bash
+   \`\`\`bash
    git init
    git add .
    git commit -m "Initial commit: TimeCapsule app"
    git branch -M main
    git remote add origin https://github.com/tu-usuario/timecapsule-app.git
    git push -u origin main
-   ```
+   \`\`\`
 
 2. **Configura el repositorio:**
    - Ve a [GitHub](https://github.com) y crea un nuevo repositorio
@@ -34,9 +34,9 @@
    - **Install Command:** `pnpm install` (se detecta automáticamente)
 
 3. **Variables de entorno (opcional):**
-   ```
+   \`\`\`
    NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
-   ```
+   \`\`\`
 
 4. **Haz clic en "Deploy"**
 

@@ -47,7 +47,7 @@
 ## 🚀 Próximos Pasos para Publicar
 
 ### 1. Preparar Repositorio
-```bash
+\`\`\`bash
 # Ejecutar el script de despliegue
 ./scripts/deploy.sh
 
@@ -58,7 +58,7 @@ git commit -m "Initial commit: TimeCapsule app"
 git branch -M main
 git remote add origin https://github.com/tu-usuario/timecapsule-app.git
 git push -u origin main
-```
+\`\`\`
 
 ### 2. Desplegar en Vercel
 1. Ve a [vercel.com](https://vercel.com)
