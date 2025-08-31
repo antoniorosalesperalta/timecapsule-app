@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle, Eye } from "lucide-react"
+import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -59,49 +59,82 @@ export default function TimeCapsule() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        console.log("[v0] Checking authentication...")
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+      console.log("[v0] Checking authentication...")
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-        console.log("[v0] Session:", session ? "Found" : "Not found")
-
-        if (!session) {
-          console.log("[v0] No session, redirecting to login")
-          router.push("/auth/login")
-          return
-        }
-
-        console.log("[v0] User authenticated:", session.user.email)
-        setUser(session.user)
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("annual_reminder_date")
-          .eq("id", session.user.id)
-          .single()
-
-        if (profile?.annual_reminder_date) {
-          console.log("[v0] User setup complete, going to dashboard")
-          setSetupComplete(true)
-          setShowIntro(false)
-          setShowCalendar(false)
-        } else {
-          console.log("[v0] User needs setup, showing intro")
-          setShowIntro(true)
-          setSetupComplete(false)
-        }
-
-        setLoading(false)
-      } catch (error) {
-        console.error("[v0] Auth error:", error)
+      if (!session) {
+        console.log("[v0] No session found, redirecting to login")
         router.push("/auth/login")
+        return
       }
+
+      console.log("[v0] User authenticated:", session.user.email)
+      setUser(session.user)
+
+      // Check if user has completed setup
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("annual_reminder_date")
+        .eq("id", session.user.id)
+        .single()
+
+      if (profile?.annual_reminder_date) {
+        console.log("[v0] User setup complete, going to dashboard")
+        setSetupComplete(true)
+      } else {
+        console.log("[v0] User needs setup, showing intro")
+        setShowIntro(true)
+      }
+
+      setLoading(false)
     }
 
     checkAuth()
-  }, [router, supabase, setupComplete])
+  }, [router, supabase])
+
+  const carouselImages = [
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1-EHpdxWsvTwc6tv25ayfyZ2e2Ij5F9E.png",
+      title: "Conexiones que Perduran",
+      description: "TimeCapsule te permite crear un legado digital único para tus seres queridos.",
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2-pLtyTLGv0NlQjOK3KwmKTI6Tmmypkk.png",
+      title: "Memorias que Inspiran",
+      description: "Cada año, graba un video especial que capture tu crecimiento y sabiduría.",
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_42_35%20p.m.-JfPLBdDkKSfIzqcyU6e7E0eGGMwdx1.png",
+      title: "Momentos Preciosos",
+      description: "Documenta tu evolución personal y los momentos más significativos de tu vida.",
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_46_42%20p.m.-8nEBJCuaaZ3BZ2v8SlDDTLMuXYNxbm.png",
+      title: "Legado Eterno",
+      description: "Tu familia podrá acceder a tus recuerdos a través de un código QR especial.",
+    },
+    {
+      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_53_36%20p.m.-pIAP8nAyGlQCxB4MYuDCpE5Ie6pVPD.png",
+      title: "Conexión Infinita",
+      description: "Mantén viva la conexión con tus seres queridos para las futuras generaciones.",
+    },
+  ]
+
+  const nextSlide = () => {
+    if (currentSlide < carouselImages.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    } else {
+      setShowIntro(false)
+      setShowCalendar(true)
+    }
+  }
+
+  const skipIntro = () => {
+    setShowIntro(false)
+    setShowCalendar(true)
+  }
 
   const getMinDate = () => {
     const tomorrow = new Date()
@@ -109,32 +142,46 @@ export default function TimeCapsule() {
     return tomorrow.toISOString().split("T")[0]
   }
 
-  const configureReminder = () => {
-    if (reminderDate) {
-      console.log("Reminder date set:", reminderDate)
-      setSetupComplete(true)
+  const configureReminder = async () => {
+    if (!reminderDate || !user) return
+
+    try {
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        annual_reminder_date: reminderDate,
+        updated_at: new Date().toISOString(),
+      })
+
+      if (error) throw error
+
+      console.log("[v0] Reminder date saved successfully")
       setShowCalendar(false)
-      setShowIntro(false)
-      setCurrentView("dashboard")
+      setSetupComplete(true)
+    } catch (error) {
+      console.error("[v0] Error saving reminder date:", error)
     }
   }
 
   const handleAddContact = () => {
-    if (newContact.name && newContact.email && newContact.relation && newContact.rut) {
-      setFamilyContacts([...familyContacts, { ...newContact, id: Date.now() }])
+    if (newContact.name && newContact.email && newContact.rut && newContact.relation) {
+      const contact = {
+        id: Date.now(),
+        ...newContact,
+      }
+      setFamilyContacts([...familyContacts, contact])
       setNewContact({ name: "", email: "", relation: "", rut: "" })
     }
   }
 
   const handleEditContact = (contact) => {
-    setEditingContact(contact.id)
+    setEditingContact(contact)
     setNewContact(contact)
   }
 
   const handleUpdateContact = () => {
     setFamilyContacts(
       familyContacts.map((contact) =>
-        contact.id === editingContact ? { ...newContact, id: editingContact } : contact,
+        contact.id === editingContact.id ? { ...editingContact, ...newContact } : contact,
       ),
     )
     setEditingContact(null)
@@ -145,15 +192,74 @@ export default function TimeCapsule() {
     setFamilyContacts(familyContacts.filter((contact) => contact.id !== id))
   }
 
-  const handleCloseVideo = () => {
-    setPlayingVideo(null)
+  const saveTrustedContact = () => {
+    if (trustedContact.name && trustedContact.email) {
+      setTrustedContact({ ...trustedContact, saved: true })
+    }
+  }
+
+  const handleViewFiles = (contact) => {
+    setSelectedContact(contact)
+    setViewingFile({ contact, files: personalizedFiles[contact.id] || [] })
+  }
+
+  const handleAddFile = (contact) => {
+    setSelectedContact(contact)
+    setNewFile({ title: "", type: "text", content: "", file: null })
+    setEditingFile(null)
+    setShowFileModal(true)
+  }
+
+  const handleEditFile = (contact, file) => {
+    setSelectedContact(contact)
+    setNewFile(file)
+    setEditingFile(file)
+    setShowFileModal(true)
+  }
+
+  const handleDeleteFile = (contactId, fileId) => {
+    const updatedFiles = personalizedFiles[contactId]?.filter((file) => file.id !== fileId) || []
+    setPersonalizedFiles({
+      ...personalizedFiles,
+      [contactId]: updatedFiles,
+    })
+  }
+
+  const saveFile = () => {
+    if (!selectedContact || !newFile.title) return
+
+    const file = {
+      id: editingFile?.id || Date.now(),
+      title: newFile.title,
+      type: newFile.type,
+      content: newFile.content,
+      file: newFile.file,
+      createdAt: editingFile?.createdAt || new Date().toISOString(),
+    }
+
+    const contactFiles = personalizedFiles[selectedContact.id] || []
+    const updatedFiles = editingFile
+      ? contactFiles.map((f) => (f.id === editingFile.id ? file : f))
+      : [...contactFiles, file]
+
+    setPersonalizedFiles({
+      ...personalizedFiles,
+      [selectedContact.id]: updatedFiles,
+    })
+
+    setShowFileModal(false)
+    setNewFile({ title: "", type: "text", content: "", file: null })
+    setEditingFile(null)
   }
 
   const startRecording = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      setStream(mediaStream)
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      })
 
+      setStream(mediaStream)
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
       }
@@ -170,237 +276,88 @@ export default function TimeCapsule() {
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: "video/webm" })
         const videoUrl = URL.createObjectURL(blob)
+        const newVideo = {
+          id: Date.now(),
+          year: new Date().getFullYear(),
+          duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, "0")}`,
+          recorded: true,
+          url: videoUrl,
+        }
+
+        setSavedVideos([...savedVideos, newVideo])
+        setVideoBlobs({ ...videoBlobs, [newVideo.id]: videoUrl })
         setRecordedVideo(videoUrl)
-        setVideoBlobs((prev) => ({ ...prev, [Date.now()]: videoUrl }))
+
+        mediaStream.getTracks().forEach((track) => track.stop())
+        setStream(null)
+        setIsRecording(false)
+        setRecordingTime(0)
       }
 
       setMediaRecorder(recorder)
       recorder.start()
       setIsRecording(true)
-      setRecordingTime(0)
 
+      // Auto-stop after 60 seconds
+      setTimeout(() => {
+        if (recorder.state === "recording") {
+          recorder.stop()
+        }
+      }, 60000)
+
+      // Update recording time
       const timer = setInterval(() => {
         setRecordingTime((prev) => {
           if (prev >= 60) {
-            stopRecording()
+            clearInterval(timer)
             return 60
           }
           return prev + 1
         })
       }, 1000)
-
-      setTimeout(() => {
-        clearInterval(timer)
-      }, 60000)
     } catch (error) {
       console.error("Error accessing camera:", error)
     }
   }
 
   const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop()
-
-      const newVideo = {
-        id: Date.now(),
-        year: new Date().getFullYear(),
-        duration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, "0")}`,
-        recorded: true,
-        url: null,
-      }
-
-      if (mediaRecorder) {
-        mediaRecorder.onstop = () => {
-          const chunks = []
-          const blob = new Blob(chunks, { type: "video/webm" })
-          const videoUrl = URL.createObjectURL(blob)
-
-          newVideo.url = videoUrl
-          setSavedVideos((prev) => [...prev, newVideo])
-          setRecordedVideo(videoUrl)
-          setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
-        }
-      }
     }
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
-    }
-    setIsRecording(false)
-    setStream(null)
   }
 
   const playVideo = (videoUrl) => {
-    if (videoUrl) {
-      setPlayingVideo(videoUrl)
-    }
+    setPlayingVideo(videoUrl)
   }
 
   const playCompiledVideo = () => {
-    if (savedVideos.length > 0) {
-      setPlayingVideo(savedVideos[0].url || recordedVideo)
-    } else if (recordedVideo) {
-      setPlayingVideo(recordedVideo)
+    // Create a simple compiled video URL for demo
+    const firstVideo = lifeVideos[0] || savedVideos[0]
+    if (firstVideo) {
+      setPlayingVideo(videoBlobs[firstVideo.id] || "demo-compiled-video")
     }
   }
 
   const deleteVideo = (videoId) => {
-    setSavedVideos((prev) => prev.filter((video) => video.id !== videoId))
-    setLifeVideos((prev) => prev.filter((video) => video.id !== videoId))
+    setSavedVideos(savedVideos.filter((video) => video.id !== videoId))
+    const newVideoBlobs = { ...videoBlobs }
+    delete newVideoBlobs[videoId]
+    setVideoBlobs(newVideoBlobs)
   }
 
-  const saveTrustedContact = () => {
-    if (trustedContact.name && trustedContact.email) {
-      setTrustedContact({ ...trustedContact, saved: true })
-      console.log("Saving trusted contact:", trustedContact)
-      alert("Contacto de confianza guardado exitosamente")
-    } else {
-      alert("Por favor completa todos los campos")
-    }
-  }
-
-  const handleViewFiles = (contact) => {
-    setSelectedContact(contact)
-    setShowFileModal(true)
-  }
-
-  const handleAddFile = (contact) => {
-    setSelectedContact(contact)
-    setNewFile({ title: "", type: "text", content: "", file: null })
-    setEditingFile(null)
-    setShowFileModal(true)
-  }
-
-  const handleEditFile = (contact, file) => {
-    setSelectedContact(contact)
-    setNewFile({ ...file })
-    setEditingFile(file)
-    setShowFileModal(true)
-  }
-
-  const handleSaveFile = () => {
-    if (selectedContact && newFile.title) {
-      const contactFiles = personalizedFiles[selectedContact.id] || []
-      let updatedFiles
-
-      if (editingFile) {
-        // Editing existing file
-        updatedFiles = contactFiles.map((file) =>
-          file.id === editingFile.id ? { ...newFile, id: editingFile.id } : file,
-        )
-      } else {
-        // Adding new file
-        updatedFiles = [...contactFiles, { ...newFile, id: Date.now() }]
-      }
-
-      setPersonalizedFiles({ ...personalizedFiles, [selectedContact.id]: updatedFiles })
-      setShowFileModal(false)
-      setNewFile({ title: "", type: "text", content: "", file: null })
-      setEditingFile(null)
-    }
-  }
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0]
-    if (file) {
-      setNewFile({ ...newFile, file: file })
-    }
-  }
-
-  const handleDeleteFile = (contactId, fileId) => {
-    const contactFiles = personalizedFiles[contactId] || []
-    const updatedFiles = contactFiles.filter((file) => file.id !== fileId)
-    setPersonalizedFiles({ ...personalizedFiles, [contactId]: updatedFiles })
-  }
-
-  const handleViewFile = (file) => {
-    setViewingFile(file)
+  const handleCloseVideo = () => {
+    setPlayingVideo(null)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
+          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <PadlockHeartIcon className="w-10 h-10 text-rose-600" />
           </div>
-          <p className="text-muted-foreground">Verificando autenticación...</p>
+          <p className="text-lg text-gray-600">Cargando TimeCapsule...</p>
         </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    console.log("[v0] No user found, should redirect to login")
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Redirigiendo al login...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const introSlides = [
-    {
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1-EHpdxWsvTwc6tv25ayfyZ2e2Ij5F9E.png",
-      title: "Conexiones que Perduran",
-      description: "TimeCapsule te permite crear un legado digital único para tus seres queridos.",
-    },
-    {
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2-pLtyTLGv0NlQjOK3KwmKTI6Tmmypkk.png",
-      title: "Crecimiento a Través del Tiempo",
-      description: "Documenta tu evolución año tras año, creando un tesoro de recuerdos.",
-    },
-    {
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_42_35%20p.m.-JfPLBdDkKSfIzqcyU6e7E0eGGMwdx1.png",
-      title: "Memorias que Inspiran",
-      description: "Cada video anual se convierte en una ventana a tu crecimiento personal.",
-    },
-    {
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_46_42%20p.m.-8nEBJCuaaZ3BZ2v8SlDDTLMuXYNxbm.png",
-      title: "Legado Eterno",
-      description: "Tus videos se convierten en un tesoro para las futuras generaciones.",
-    },
-    {
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%2029%20ago%202025%2C%2008_53_36%20p.m.-pIAP8nAyGlQCxB4MYuDCpE5Ie6pVPD.png",
-      title: "Conexión Perpetua",
-      description: "Mantén viva la conexión con tus seres queridos a través del tiempo.",
-    },
-  ]
-
-  if (showCalendar) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Bienvenido a TimeCapsule!</h1>
-              <p className="text-muted-foreground">Configura tu primer recordatorio para comenzar tu legado digital</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="reminderDate">¿Cuándo quieres grabar tu primer video?</Label>
-                <Input
-                  id="reminderDate"
-                  type="date"
-                  value={reminderDate}
-                  onChange={(e) => setReminderDate(e.target.value)}
-                  min={getMinDate()}
-                />
-              </div>
-              <Button onClick={configureReminder} className="w-full">
-                Configurar Recordatorio
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     )
   }
@@ -410,61 +367,80 @@ export default function TimeCapsule() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
           <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">TimeCapsule</h1>
+            <div className="aspect-[3/2] mb-4 rounded-lg overflow-hidden bg-gray-100">
+              <img
+                src={carouselImages[currentSlide].src || "/placeholder.svg"}
+                alt={carouselImages[currentSlide].title}
+                className="w-full h-full object-cover"
+              />
             </div>
 
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 text-balance">{carouselImages[currentSlide].title}</h2>
+              <p className="text-muted-foreground text-pretty leading-relaxed">
+                {carouselImages[currentSlide].description}
+              </p>
+            </div>
+
+            <div className="flex justify-center mb-6">
+              {carouselImages.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full mx-1 ${index === currentSlide ? "bg-rose-600" : "bg-gray-300"}`}
+                />
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={skipIntro} className="flex-1 bg-transparent">
+                Saltar
+              </Button>
+              <Button onClick={nextSlide} className="flex-1 bg-rose-600 hover:bg-rose-700">
+                {currentSlide === carouselImages.length - 1 ? "Comenzar" : "Siguiente"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (showCalendar) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2">¡Bienvenido a TimeCapsule!</h2>
+            <p className="text-muted-foreground mb-6 text-pretty">
+              Configura tu primer recordatorio para comenzar tu legado digital
+            </p>
+
             <div className="space-y-4">
-              <div className="aspect-[3/2] mb-4 rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={introSlides[currentSlide].image || "/placeholder.svg"}
-                  alt={introSlides[currentSlide].title}
-                  className="w-full h-full object-cover"
+              <div>
+                <Label htmlFor="reminderDate" className="text-left block mb-2">
+                  ¿Cuándo quieres grabar tu primer video?
+                </Label>
+                <Input
+                  id="reminderDate"
+                  type="date"
+                  value={reminderDate}
+                  min={getMinDate()}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2 text-balance">{introSlides[currentSlide].title}</h2>
-                <p className="text-muted-foreground text-pretty leading-relaxed">
-                  {introSlides[currentSlide].description}
-                </p>
-              </div>
-
-              <div className="flex justify-center space-x-2 my-4">
-                {introSlides.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full ${index === currentSlide ? "bg-rose-600" : "bg-gray-300"}`}
-                  />
-                ))}
-              </div>
-
-              <div className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowIntro(false)
-                    setShowCalendar(true)
-                  }}
-                >
-                  Saltar
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (currentSlide < introSlides.length - 1) {
-                      setCurrentSlide(currentSlide + 1)
-                    } else {
-                      setShowIntro(false)
-                      setShowCalendar(true)
-                    }
-                  }}
-                >
-                  {currentSlide < introSlides.length - 1 ? "Siguiente" : "Comenzar"}
-                </Button>
-              </div>
+              <Button
+                onClick={configureReminder}
+                className="w-full bg-rose-600 hover:bg-rose-700"
+                disabled={!reminderDate}
+              >
+                Configurar Recordatorio
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -644,20 +620,6 @@ export default function TimeCapsule() {
             </CardContent>
           </Card>
         </div>
-
-        {playingVideo && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Reproduciendo Video</h3>
-                <Button variant="outline" size="sm" onClick={handleCloseVideo}>
-                  ×
-                </Button>
-              </div>
-              <video src={playingVideo} controls autoPlay className="w-full rounded-lg" onEnded={handleCloseVideo} />
-            </div>
-          </div>
-        )}
       </div>
     )
   }
@@ -877,129 +839,116 @@ export default function TimeCapsule() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">
-                  {editingFile
-                    ? "Editar Archivo"
-                    : personalizedFiles[selectedContact?.id]?.length > 0
-                      ? "Archivos de " + selectedContact?.name
-                      : "Agregar Archivo"}
-                </h3>
+                <h3 className="text-lg font-semibold">{editingFile ? "Editar Archivo" : "Agregar Archivo"}</h3>
                 <Button variant="outline" size="sm" onClick={() => setShowFileModal(false)}>
                   ×
                 </Button>
               </div>
 
-              {!editingFile && personalizedFiles[selectedContact?.id]?.length > 0 ? (
-                <div className="space-y-2">
-                  {personalizedFiles[selectedContact.id].map((file) => (
-                    <div key={file.id} className="flex justify-between items-center p-2 border rounded">
-                      <div className="flex-1">
-                        <span className="font-medium">{file.title}</span>
-                        <span className="text-sm text-muted-foreground ml-2">({file.type})</span>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="outline" onClick={() => handleViewFile(file)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleEditFile(selectedContact, file)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteFile(selectedContact.id, file.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="fileTitle">Título</Label>
+                  <Input
+                    id="fileTitle"
+                    value={newFile.title}
+                    onChange={(e) => setNewFile({ ...newFile, title: e.target.value })}
+                    placeholder="Título del archivo"
+                  />
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="fileTitle">Título</Label>
-                    <Input
-                      id="fileTitle"
-                      value={newFile.title}
-                      onChange={(e) => setNewFile({ ...newFile, title: e.target.value })}
-                      placeholder="Título del archivo"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="fileType">Tipo</Label>
-                    <Select value={newFile.type} onValueChange={(value) => setNewFile({ ...newFile, type: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Texto</SelectItem>
-                        <SelectItem value="image">Imagen</SelectItem>
-                        <SelectItem value="video">Video</SelectItem>
-                        <SelectItem value="document">Documento</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="fileUpload">Subir Archivo</Label>
-                    <Input
-                      id="fileUpload"
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept={newFile.type === "image" ? "image/*" : newFile.type === "video" ? "video/*" : "*/*"}
-                    />
-                    {newFile.file && (
-                      <p className="text-sm text-muted-foreground mt-1">Archivo seleccionado: {newFile.file.name}</p>
-                    )}
-                  </div>
-                  <Button onClick={handleSaveFile} className="w-full">
-                    {editingFile ? "Actualizar Archivo" : "Guardar Archivo"}
+
+                <div>
+                  <Label htmlFor="fileType">Tipo</Label>
+                  <Select value={newFile.type} onValueChange={(value) => setNewFile({ ...newFile, type: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Texto</SelectItem>
+                      <SelectItem value="image">Imagen</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                      <SelectItem value="audio">Audio</SelectItem>
+                      <SelectItem value="document">Documento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="fileUpload">Archivo</Label>
+                  <Input
+                    id="fileUpload"
+                    type="file"
+                    ref={fileInputRef}
+                    accept={
+                      newFile.type === "image"
+                        ? "image/*"
+                        : newFile.type === "video"
+                          ? "video/*"
+                          : newFile.type === "audio"
+                            ? "audio/*"
+                            : newFile.type === "document"
+                              ? ".pdf,.doc,.docx"
+                              : "*"
+                    }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setNewFile({ ...newFile, file })
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={saveFile} className="flex-1">
+                    {editingFile ? "Actualizar" : "Guardar"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowFileModal(false)} className="flex-1">
+                    Cancelar
                   </Button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}
 
         {viewingFile && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">{viewingFile.title}</h3>
+                <h3 className="text-lg font-semibold">Archivos de {viewingFile.contact.name}</h3>
                 <Button variant="outline" size="sm" onClick={() => setViewingFile(null)}>
                   ×
                 </Button>
               </div>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">Tipo: {viewingFile.type}</p>
-                {viewingFile.file && (
-                  <div>
-                    {viewingFile.type === "image" && (
-                      <img
-                        src={URL.createObjectURL(viewingFile.file) || "/placeholder.svg"}
-                        alt={viewingFile.title}
-                        className="max-w-full h-auto rounded"
-                      />
-                    )}
-                    {viewingFile.type === "video" && (
-                      <video
-                        src={URL.createObjectURL(viewingFile.file)}
-                        controls
-                        className="max-w-full h-auto rounded"
-                      />
-                    )}
-                    {(viewingFile.type === "document" || viewingFile.type === "text") && (
-                      <div className="p-4 bg-gray-50 rounded">
-                        <p className="text-sm">Archivo: {viewingFile.file.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Tamaño: {(viewingFile.file.size / 1024).toFixed(2)} KB
-                        </p>
+
+              {viewingFile.files?.length > 0 ? (
+                <div className="space-y-4">
+                  {viewingFile.files.map((file) => (
+                    <div key={file.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">{file.title}</h4>
+                        <span className="text-xs text-muted-foreground capitalize">{file.type}</span>
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
+
+                      {file.type === "image" && file.file && (
+                        <img
+                          src={URL.createObjectURL(file.file) || "/placeholder.svg"}
+                          alt={file.title}
+                          className="max-w-full h-auto rounded"
+                        />
+                      )}
+
+                      {file.type === "video" && file.file && (
+                        <video src={URL.createObjectURL(file.file)} controls className="max-w-full h-auto rounded" />
+                      )}
+
+                      {file.content && <p className="text-sm text-muted-foreground mt-2">{file.content}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No hay archivos para este contacto</p>
+              )}
             </div>
           </div>
         )}
