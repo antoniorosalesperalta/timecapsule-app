@@ -71,6 +71,11 @@ export default function TimeCapsule() {
   const [selectedContact, setSelectedContact] = useState(null)
   const cameraRef = useRef(null)
 
+  const [personalizedContent, setPersonalizedContent] = useState({})
+  const [showFileManager, setShowFileManager] = useState(null)
+  const [showAddContent, setShowAddContent] = useState(null)
+  const [newContentForm, setNewContentForm] = useState({ title: "", type: "document", file: null })
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -591,6 +596,48 @@ export default function TimeCapsule() {
     }))
   }
 
+  const handleViewFiles = (contactId, contactName) => {
+    setShowFileManager(contactId)
+  }
+
+  const handleAddContent = (contactId) => {
+    setShowAddContent(contactId)
+    setNewContentForm({ title: "", type: "document", file: null })
+  }
+
+  const handleSaveContent = async (contactId) => {
+    if (!newContentForm.title || !newContentForm.file) {
+      alert("Por favor completa todos los campos")
+      return
+    }
+
+    const newContent = {
+      id: Date.now(),
+      title: newContentForm.title,
+      type: newContentForm.type,
+      fileName: newContentForm.file.name,
+      dateAdded: new Date().toLocaleDateString(),
+      file: newContentForm.file,
+    }
+
+    setPersonalizedContent((prev) => ({
+      ...prev,
+      [contactId]: [...(prev[contactId] || []), newContent],
+    }))
+
+    setShowAddContent(null)
+    setNewContentForm({ title: "", type: "document", file: null })
+  }
+
+  const handleDeleteContent = (contactId, contentId) => {
+    if (confirm("¿Estás seguro de que quieres eliminar este contenido?")) {
+      setPersonalizedContent((prev) => ({
+        ...prev,
+        [contactId]: (prev[contactId] || []).filter((content) => content.id !== contentId),
+      }))
+    }
+  }
+
   if (showIntro && !isConfigured) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-100">
@@ -1027,38 +1074,26 @@ export default function TimeCapsule() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" onClick={() => alert(`Viendo archivos de ${contact.name}`)}>
+                        <Button variant="outline" size="sm" onClick={() => handleViewFiles(contact.id, contact.name)}>
                           <FileText className="w-4 h-4 mr-1" />
                           Ver Archivos
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => alert(`Agregando contenido para ${contact.name}`)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleAddContent(contact.id)}>
                           <Plus className="w-4 h-4 mr-1" />
                           Agregar
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => alert(`Editando información de ${contact.name}`)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setShowFileManager(contact.id)}>
                           <Edit className="w-4 h-4 mr-1" />
                           Editar
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => alert(`Eliminando contenido de ${contact.name}`)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleDeleteContent(contact.id, "all")}>
                           <Trash2 className="w-4 h-4 mr-1" />
                           Eliminar
                         </Button>
                       </div>
 
                       <div className="text-sm text-muted-foreground">
-                        <p>Archivos: 3 documentos, 2 fotos</p>
+                        <p>Archivos: {(personalizedContent[contact.id] || []).length} elementos</p>
                         <p>
                           Video personalizado:{" "}
                           {personalizedInfoSettings[contact.id]?.includeLifeVideo ? "Incluido" : "No incluido"}
@@ -1075,6 +1110,109 @@ export default function TimeCapsule() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver al Inicio
           </Button>
+
+          {showFileManager && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <Card className="w-full max-w-md max-h-[80vh] overflow-y-auto">
+                <CardHeader>
+                  <CardTitle>Archivos de {familyContacts.find((c) => c.id === showFileManager)?.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(personalizedContent[showFileManager] || []).length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">No hay archivos agregados</p>
+                    ) : (
+                      (personalizedContent[showFileManager] || []).map((content) => (
+                        <div key={content.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{content.title}</p>
+                            <p className="text-sm text-muted-foreground">{content.fileName}</p>
+                            <p className="text-xs text-muted-foreground">{content.dateAdded}</p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteContent(showFileManager, content.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={() => handleAddContent(showFileManager)} className="flex-1">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Agregar Archivo
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowFileManager(null)}>
+                      Cerrar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {showAddContent && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <Card className="w-full max-w-md">
+                <CardHeader>
+                  <CardTitle>Agregar Contenido</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Título</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border rounded-md"
+                        value={newContentForm.title}
+                        onChange={(e) => setNewContentForm((prev) => ({ ...prev, title: e.target.value }))}
+                        placeholder="Nombre del archivo o contenido"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Tipo</label>
+                      <select
+                        className="w-full p-2 border rounded-md"
+                        value={newContentForm.type}
+                        onChange={(e) => setNewContentForm((prev) => ({ ...prev, type: e.target.value }))}
+                      >
+                        <option value="document">Documento</option>
+                        <option value="photo">Foto</option>
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Archivo</label>
+                      <input
+                        type="file"
+                        className="w-full p-2 border rounded-md"
+                        onChange={(e) => setNewContentForm((prev) => ({ ...prev, file: e.target.files[0] }))}
+                        accept={
+                          newContentForm.type === "photo"
+                            ? "image/*"
+                            : newContentForm.type === "video"
+                              ? "video/*"
+                              : "*/*"
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-6">
+                    <Button onClick={() => handleSaveContent(showAddContent)} className="flex-1">
+                      Guardar
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowAddContent(null)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     )
