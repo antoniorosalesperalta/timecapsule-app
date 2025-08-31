@@ -32,11 +32,16 @@ export default function SignUpPage() {
     }
 
     try {
+      const redirectUrl =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:3000/auth/callback"
+          : `${window.location.origin}/auth/callback`
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: redirectUrl,
         },
       })
       if (error) throw error
