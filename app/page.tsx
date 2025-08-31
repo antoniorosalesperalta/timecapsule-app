@@ -26,7 +26,7 @@ export default function TimeCapsule() {
   const [showCalendar, setShowCalendar] = useState(false)
   const [setupComplete, setSetupComplete] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [currentView, setCurrentView] = useState("dashboard")
+  const [currentView, setCurrentView] = useState("loading")
   const [reminderDate, setReminderDate] = useState("")
   const [familyContacts, setFamilyContacts] = useState([])
   const [newContact, setNewContact] = useState({ name: "", email: "", relation: "", rut: "" })
@@ -86,7 +86,7 @@ export default function TimeCapsule() {
         setShowCalendar(false)
         setCurrentView("dashboard")
       } else {
-        console.log("[v0] User needs setup, showing intro")
+        console.log("[v0] User needs setup, starting with intro")
         setShowIntro(true)
         setShowCalendar(false)
         setSetupComplete(false)
@@ -364,7 +364,7 @@ export default function TimeCapsule() {
     )
   }
 
-  if (currentView === "intro" && showIntro) {
+  if (showIntro && currentView === "intro") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
@@ -436,7 +436,7 @@ export default function TimeCapsule() {
     )
   }
 
-  if (setupComplete && currentView === "dashboard" && !showIntro && !showCalendar) {
+  if (currentView === "dashboard" && setupComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 p-4">
         <div className="max-w-4xl mx-auto">
