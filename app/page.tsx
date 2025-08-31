@@ -201,7 +201,7 @@ export default function TimeCapsule() {
         </header>
 
         <div className="grid gap-6 md:grid-cols-2 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("videos")}>
             <CardHeader>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
                 <Video className="w-6 h-6 text-blue-600" />
@@ -213,7 +213,10 @@ export default function TimeCapsule() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setCurrentView("personalized")}
+          >
             <CardHeader>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
                 <FileText className="w-6 h-6 text-purple-600" />
@@ -225,7 +228,7 @@ export default function TimeCapsule() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("contacts")}>
             <CardHeader>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
                 <Users className="w-6 h-6 text-green-600" />
@@ -237,7 +240,7 @@ export default function TimeCapsule() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView("legacy")}>
             <CardHeader>
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-2">
                 <PadlockHeartIcon className="w-6 h-6 text-orange-600" />
@@ -249,6 +252,47 @@ export default function TimeCapsule() {
             </CardHeader>
           </Card>
         </div>
+
+        {currentView !== "dashboard" && (
+          <div className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {currentView === "videos" && "Tu Video de Vida"}
+                  {currentView === "personalized" && "Información Personalizada"}
+                  {currentView === "contacts" && "Contactos"}
+                  {currentView === "legacy" && "Sistema de Legado"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {currentView === "videos" && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">Sección de videos en desarrollo</p>
+                    <Button onClick={() => setCurrentView("dashboard")}>Volver al Inicio</Button>
+                  </div>
+                )}
+                {currentView === "personalized" && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">Información personalizada en desarrollo</p>
+                    <Button onClick={() => setCurrentView("dashboard")}>Volver al Inicio</Button>
+                  </div>
+                )}
+                {currentView === "contacts" && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">Gestión de contactos en desarrollo</p>
+                    <Button onClick={() => setCurrentView("dashboard")}>Volver al Inicio</Button>
+                  </div>
+                )}
+                {currentView === "legacy" && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">Sistema de legado en desarrollo</p>
+                    <Button onClick={() => setCurrentView("dashboard")}>Volver al Inicio</Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="text-center">
           <Button
