@@ -19,11 +19,10 @@ export default function LoginPage() {
       <div style={{
         width: '100%',
         maxWidth: '28rem',
-        background: 'rgba(255, 255, 255, 0.95)',
+        background: '#fff5f7',
         borderRadius: '1rem',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        border: 'none',
-        backdropFilter: 'blur(10px)'
+        border: '1px solid #fbcfe8'
       }}>
         <div style={{ padding: '2rem', textAlign: 'center' }}>
           <div style={{
@@ -46,7 +45,7 @@ export default function LoginPage() {
             marginBottom: '0.75rem'
           }}>Bienvenido a TimeCapsule</h1>
           <p style={{
-            color: '#6b7280',
+            color: '#374151',
             fontSize: '1rem',
             marginBottom: '1.5rem'
           }}>
@@ -61,7 +60,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               style={{
                 width: '100%',
-                border: '1px solid #d1d5db',
+                border: '1px solid #e5e7eb',
                 borderRadius: '0.5rem',
                 padding: '0.75rem',
                 fontSize: '1rem',
@@ -76,28 +75,6 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               style={{
                 width: '100%',
-                border: '1px solid #d1d5db',
+                border: '1px solid #e5e7eb',
                 borderRadius: '0.5rem',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                backgroundColor: '#fff',
-                outline: 'none'
-              }}
-            />
-            <button
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-                color: 'white',
-                fontWeight: '600',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.4)',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #db2777 0%, #be185d 100%)'
-
+                pad
