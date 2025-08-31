@@ -80,6 +80,8 @@
     "svelte": "latest",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "tailwindcss": "^3.4.1"
+
     "vaul": "^0.9.9",
     "vue": "latest",
     "vue-router": "latest",
