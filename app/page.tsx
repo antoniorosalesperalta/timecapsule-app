@@ -401,28 +401,35 @@ export default function TimeCapsule() {
         console.log("[v0] Created blob size:", blob.size, "bytes")
 
         try {
+          console.log("[v0] Creating FormData for upload...")
           const formData = new FormData()
           formData.append("file", blob, `video-${Date.now()}.webm`)
           formData.append("year", new Date().getFullYear().toString())
           formData.append("duration", actualDuration.toString())
           formData.append("videoType", "annual")
 
+          console.log("[v0] FormData created, blob size:", blob.size)
           console.log("[v0] Uploading video to Blob storage...")
+
           const uploadResponse = await fetch("/api/videos/upload", {
             method: "POST",
             body: formData,
           })
 
+          console.log("[v0] Upload response status:", uploadResponse.status)
+
           if (!uploadResponse.ok) {
-            throw new Error("Failed to upload video")
+            const errorText = await uploadResponse.text()
+            console.error("[v0] Upload failed with status:", uploadResponse.status, "Error:", errorText)
+            throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`)
           }
 
           const uploadResult = await uploadResponse.json()
           console.log("[v0] Video uploaded successfully:", uploadResult)
 
           const newVideo = {
-            id: uploadResult.id,
-            year: new Date().getFullYear(),
+            id: Date.now(),
+            year: uploadResult.year,
             duration: durationText,
             recorded: true,
             url: uploadResult.url,
