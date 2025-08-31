@@ -133,3 +133,5 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ---
 
 **TimeCapsule** - Preservando legados digitales para las futuras generaciones ❤️
+
+Commit directly to the main branch
