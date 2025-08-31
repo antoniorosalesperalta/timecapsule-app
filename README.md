@@ -31,20 +31,20 @@ Una aplicación web moderna para crear y preservar tu legado digital a través d
 ### Instalación
 
 1. Clona el repositorio:
-```bash
+\`\`\`bash
 git clone https://github.com/tu-usuario/timecapsule-app.git
 cd timecapsule-app
-```
+\`\`\`
 
 2. Instala las dependencias:
-```bash
+\`\`\`bash
 pnpm install
-```
+\`\`\`
 
 3. Ejecuta el servidor de desarrollo:
-```bash
+\`\`\`bash
 pnpm dev
-```
+\`\`\`
 
 4. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
@@ -67,13 +67,13 @@ pnpm dev
 
 Crea un archivo `.env.local` con las siguientes variables:
 
-```env
+\`\`\`env
 NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
-```
+\`\`\`
 
 ## 📁 Estructura del Proyecto
 
-```
+\`\`\`
 timecapsule-app/
 ├── app/                    # App Router de Next.js
 │   ├── layout.tsx         # Layout principal
@@ -90,7 +90,7 @@ timecapsule-app/
 │   ├── robots.txt        # SEO
 │   └── favicon.ico       # Icono de la aplicación
 └── styles/               # Estilos globales
-```
+\`\`\`
 
 ## 🔒 Seguridad y Privacidad
 
