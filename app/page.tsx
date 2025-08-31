@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle } from "lucide-react"
+import { Users, Video, FileText, ArrowLeft, Play, Trash2, Edit, Plus, Camera, StopCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -273,105 +273,6 @@ export default function TimeCapsule() {
     setEditingFile(null)
   }
 
-  const startRecording = async () => {
-    try {
-      console.log("[v0] Starting video recording...")
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      })
-
-      setStream(mediaStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
-
-      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp8") ? "video/webm;codecs=vp8" : "video/webm"
-
-      const recorder = new MediaRecorder(mediaStream, { mimeType })
-      const chunks = []
-      const startTime = Date.now()
-
-      recorder.ondataavailable = (event) => {
-        console.log("[v0] Recording data available:", event.data.size)
-        if (event.data.size > 0) {
-          chunks.push(event.data)
-        }
-      }
-
-      recorder.onstop = () => {
-        console.log("[v0] Recording stopped, processing...")
-        const endTime = Date.now()
-        const actualDuration = Math.floor((endTime - startTime) / 1000)
-        const durationText = `${Math.floor(actualDuration / 60)}:${(actualDuration % 60).toString().padStart(2, "0")}`
-
-        const blob = new Blob(chunks, { type: mimeType })
-        const videoUrl = URL.createObjectURL(blob)
-
-        console.log("[v0] Created video URL:", videoUrl)
-        console.log("[v0] Blob size:", blob.size, "bytes")
-
-        const newVideo = {
-          id: Date.now(),
-          year: new Date().getFullYear(),
-          duration: durationText,
-          recorded: true,
-          url: videoUrl,
-          blob: blob,
-          mimeType: mimeType,
-        }
-
-        console.log("[v0] Video saved with duration:", durationText)
-        setSavedVideos((prev) => [...prev, newVideo])
-        setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
-        setRecordedVideo(videoUrl)
-        setIsRecording(false)
-        setRecordingTime(0)
-
-        // Clean up stream
-        mediaStream.getTracks().forEach((track) => track.stop())
-        setStream(null)
-      }
-
-      recorder.start(1000) // Record in 1-second chunks
-      setMediaRecorder(recorder)
-      setIsRecording(true)
-
-      // Timer for recording duration
-      const timer = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
-      }, 1000)
-
-      // Auto-stop after 60 seconds
-      setTimeout(() => {
-        if (recorder.state === "recording") {
-          recorder.stop()
-          clearInterval(timer)
-        }
-      }, 60000)
-
-      recorder.timer = timer
-    } catch (error) {
-      console.error("[v0] Error starting recording:", error)
-      alert("Error al acceder a la cámara: " + error.message)
-    }
-  }
-
-  const stopRecording = () => {
-    console.log("[v0] Stopping recording manually...")
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop()
-      if (mediaRecorder.timer) {
-        clearInterval(mediaRecorder.timer)
-      }
-    }
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
-      setStream(null)
-    }
-    setRecordingTime(0)
-  }
-
   const playVideo = (videoUrl) => {
     console.log("[v0] Playing video:", videoUrl)
     if (!videoUrl) {
@@ -380,18 +281,22 @@ export default function TimeCapsule() {
       return
     }
 
-    // Create a new blob URL if needed
-    if (typeof videoUrl === "string" && (videoUrl.startsWith("blob:") || videoUrl.startsWith("http"))) {
-      console.log("[v0] Setting video for playback:", videoUrl)
-      setPlayingVideo(videoUrl)
+    let finalVideoUrl = null
+
+    if (typeof videoUrl === "string" && videoUrl.startsWith("blob:")) {
+      finalVideoUrl = videoUrl
     } else if (videoUrl instanceof Blob) {
-      const blobUrl = URL.createObjectURL(videoUrl)
-      console.log("[v0] Created blob URL for playback:", blobUrl)
-      setPlayingVideo(blobUrl)
+      finalVideoUrl = URL.createObjectURL(videoUrl)
+    } else if (typeof videoUrl === "string" && videoUrl.startsWith("http")) {
+      finalVideoUrl = videoUrl
     } else {
       console.error("[v0] Invalid video URL format:", videoUrl)
       alert("Formato de video no válido")
+      return
     }
+
+    console.log("[v0] Final video URL for playback:", finalVideoUrl)
+    setPlayingVideo(finalVideoUrl)
   }
 
   const playCompiledVideo = () => {
@@ -434,6 +339,115 @@ export default function TimeCapsule() {
   const saveTrustedContact = () => {
     if (!trustedContact.name || !trustedContact.email) return
     setTrustedContact({ ...trustedContact, saved: true })
+  }
+
+  const startRecording = async () => {
+    try {
+      console.log("[v0] Starting video recording...")
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      })
+
+      setStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+
+      let mimeType = "video/webm"
+      if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+        mimeType = "video/webm;codecs=vp9"
+      } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+        mimeType = "video/webm;codecs=vp8"
+      } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+        mimeType = "video/mp4"
+      }
+
+      console.log("[v0] Using MIME type:", mimeType)
+
+      const recorder = new MediaRecorder(mediaStream, { mimeType })
+      const chunks = []
+      const startTime = Date.now()
+
+      recorder.ondataavailable = (event) => {
+        console.log("[v0] Recording data available:", event.data.size)
+        if (event.data.size > 0) {
+          chunks.push(event.data)
+        }
+      }
+
+      recorder.onstop = () => {
+        console.log("[v0] Recording stopped, processing...")
+        const endTime = Date.now()
+        const actualDuration = Math.floor((endTime - startTime) / 1000)
+        const durationText = `${Math.floor(actualDuration / 60)}:${(actualDuration % 60).toString().padStart(2, "0")}`
+
+        const blob = new Blob(chunks, { type: mimeType })
+        const videoUrl = URL.createObjectURL(blob)
+
+        console.log("[v0] Created video URL:", videoUrl)
+        console.log("[v0] Blob size:", blob.size, "bytes")
+        console.log("[v0] Blob type:", blob.type)
+
+        const newVideo = {
+          id: Date.now(),
+          year: new Date().getFullYear(),
+          duration: durationText,
+          recorded: true,
+          url: videoUrl,
+          blob: blob,
+          mimeType: mimeType,
+        }
+
+        console.log("[v0] Video saved with duration:", durationText)
+        setSavedVideos((prev) => [...prev, newVideo])
+        setVideoBlobs((prev) => ({ ...prev, [newVideo.id]: videoUrl }))
+        setRecordedVideo(videoUrl)
+        setIsRecording(false)
+        setRecordingTime(0)
+
+        // Clean up stream
+        mediaStream.getTracks().forEach((track) => track.stop())
+        setStream(null)
+      }
+
+      recorder.start(100) // Record in 100ms chunks for better data capture
+      setMediaRecorder(recorder)
+      setIsRecording(true)
+
+      // Timer for recording duration
+      const timer = setInterval(() => {
+        setRecordingTime((prev) => prev + 1)
+      }, 1000)
+
+      // Auto-stop after 60 seconds
+      setTimeout(() => {
+        if (recorder.state === "recording") {
+          recorder.stop()
+          clearInterval(timer)
+        }
+      }, 60000)
+
+      recorder.timer = timer
+    } catch (error) {
+      console.error("[v0] Error starting recording:", error)
+      alert("Error al acceder a la cámara: " + error.message)
+    }
+  }
+
+  const stopRecording = () => {
+    console.log("[v0] Stopping recording manually...")
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop()
+      if (mediaRecorder.timer) {
+        clearInterval(mediaRecorder.timer)
+      }
+    }
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop())
+      setStream(null)
+    }
+    setRecordingTime(0)
   }
 
   if (loading) {
@@ -1195,14 +1209,15 @@ export default function TimeCapsule() {
   }
   playingVideo && (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 max-w-2xl w-full">
+      <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Reproduciendo Video</h3>
-          <Button variant="outline" size="sm" onClick={handleCloseVideo}>
-            ×
+          <h3 className="text-lg font-semibold">Reproducir Video</h3>
+          <Button variant="ghost" size="sm" onClick={handleCloseVideo}>
+            <X className="w-4 h-4" />
           </Button>
         </div>
         <video
+          key={playingVideo} // Force re-render when URL changes
           src={playingVideo}
           controls
           className="w-full rounded"
@@ -1212,15 +1227,22 @@ export default function TimeCapsule() {
             console.error("[v0] Video playback error:", e)
             console.error("[v0] Video URL:", playingVideo)
             console.error("[v0] Video element error:", e.target.error)
-            alert(
-              `Error al reproducir el video: ${e.target.error?.message || "Archivo corrupto o formato no soportado"}`,
-            )
-            handleCloseVideo()
+            const errorMessage = e.target.error?.message || "Archivo corrupto o formato no soportado"
+            alert(`Error al reproducir el video: ${errorMessage}`)
           }}
           onLoadStart={() => console.log("[v0] Video loading started")}
-          onLoadedMetadata={() => console.log("[v0] Video metadata loaded")}
-          onCanPlay={() => console.log("[v0] Video can play")}
+          onLoadedMetadata={(e) => {
+            console.log("[v0] Video metadata loaded")
+            console.log("[v0] Video duration:", e.target.duration)
+            console.log("[v0] Video dimensions:", e.target.videoWidth, "x", e.target.videoHeight)
+            e.target.load()
+          }}
+          onCanPlay={() => {
+            console.log("[v0] Video can play")
+          }}
           onPlay={() => console.log("[v0] Video started playing")}
+          onPause={() => console.log("[v0] Video paused")}
+          onEnded={() => console.log("[v0] Video ended")}
         />
       </div>
     </div>
