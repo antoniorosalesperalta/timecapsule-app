@@ -60,30 +60,48 @@ export default function TimeCapsule() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("[v0] Checking authentication...")
         const {
           data: { session },
         } = await supabase.auth.getSession()
 
+        console.log("[v0] Session:", session ? "Found" : "Not found")
+
         if (!session) {
+          console.log("[v0] No session, redirecting to login")
           router.push("/auth/login")
           return
         }
 
+        console.log("[v0] User authenticated:", session.user.email)
         setUser(session.user)
-        setLoading(false)
 
-        // For now, we'll assume they need to go through intro/calendar if not setupComplete
-        if (!setupComplete) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("annual_reminder_date")
+          .eq("id", session.user.id)
+          .single()
+
+        if (profile?.annual_reminder_date) {
+          console.log("[v0] User setup complete, going to dashboard")
+          setSetupComplete(true)
+          setShowIntro(false)
+          setShowCalendar(false)
+        } else {
+          console.log("[v0] User needs setup, showing intro")
           setShowIntro(true)
+          setSetupComplete(false)
         }
+
+        setLoading(false)
       } catch (error) {
-        console.error("Auth error:", error)
+        console.error("[v0] Auth error:", error)
         router.push("/auth/login")
       }
     }
 
     checkAuth()
-  }, [router, setupComplete])
+  }, [router, supabase, setupComplete])
 
   const getMinDate = () => {
     const tomorrow = new Date()
@@ -305,14 +323,21 @@ export default function TimeCapsule() {
           <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <PadlockHeartIcon className="w-8 h-8 text-rose-600" />
           </div>
-          <p className="text-muted-foreground">Cargando TimeCapsule...</p>
+          <p className="text-muted-foreground">Verificando autenticación...</p>
         </div>
       </div>
     )
   }
 
   if (!user) {
-    return null
+    console.log("[v0] No user found, should redirect to login")
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Redirigiendo al login...</p>
+        </div>
+      </div>
+    )
   }
 
   const introSlides = [
