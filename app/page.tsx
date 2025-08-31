@@ -380,9 +380,14 @@ export default function TimeCapsule() {
       return
     }
 
-    if (videoUrl.startsWith("blob:") || videoUrl.startsWith("http")) {
+    // Create a new blob URL if needed
+    if (typeof videoUrl === "string" && (videoUrl.startsWith("blob:") || videoUrl.startsWith("http"))) {
       console.log("[v0] Setting video for playback:", videoUrl)
       setPlayingVideo(videoUrl)
+    } else if (videoUrl instanceof Blob) {
+      const blobUrl = URL.createObjectURL(videoUrl)
+      console.log("[v0] Created blob URL for playback:", blobUrl)
+      setPlayingVideo(blobUrl)
     } else {
       console.error("[v0] Invalid video URL format:", videoUrl)
       alert("Formato de video no válido")
@@ -391,11 +396,19 @@ export default function TimeCapsule() {
 
   const playCompiledVideo = () => {
     console.log("[v0] Playing compiled video...")
-    const allVideos = [...savedVideos]
-    if (allVideos.length > 0) {
-      // For now, play the first video as compiled video
-      const firstVideo = allVideos[0]
-      setPlayingVideo(firstVideo.url || videoBlobs[firstVideo.id])
+    console.log("[v0] Saved videos:", savedVideos)
+    console.log("[v0] Video blobs:", videoBlobs)
+
+    if (savedVideos.length > 0) {
+      const firstVideo = savedVideos[0]
+      const videoUrl = firstVideo.url || videoBlobs[firstVideo.id]
+      console.log("[v0] First video URL:", videoUrl)
+
+      if (videoUrl) {
+        playVideo(videoUrl)
+      } else {
+        alert("Video no disponible para reproducir")
+      }
     } else {
       alert("No hay videos grabados para compilar")
     }
@@ -626,7 +639,7 @@ export default function TimeCapsule() {
                             {savedVideos.length}:00
                           </p>
                         </div>
-                        <Button onClick={playCompiledVideo}>
+                        <Button onClick={playCompiledVideo} disabled={savedVideos.length === 0}>
                           <Play className="w-4 h-4 mr-2" />
                           Reproducir Video Completo
                         </Button>
@@ -659,8 +672,14 @@ export default function TimeCapsule() {
                             variant="outline"
                             onClick={() => {
                               const videoUrl = video.url || videoBlobs[video.id]
-                              console.log("[v0] Attempting to play video:", videoUrl)
-                              playVideo(videoUrl)
+                              console.log("[v0] Video object:", video)
+                              console.log("[v0] Attempting to play video URL:", videoUrl)
+                              console.log("[v0] Available video blobs:", Object.keys(videoBlobs))
+                              if (videoUrl) {
+                                playVideo(videoUrl)
+                              } else {
+                                alert("Video no disponible")
+                              }
                             }}
                           >
                             <Play className="w-4 h-4" />
@@ -1196,6 +1215,7 @@ export default function TimeCapsule() {
             alert(
               `Error al reproducir el video: ${e.target.error?.message || "Archivo corrupto o formato no soportado"}`,
             )
+            handleCloseVideo()
           }}
           onLoadStart={() => console.log("[v0] Video loading started")}
           onLoadedMetadata={() => console.log("[v0] Video metadata loaded")}
